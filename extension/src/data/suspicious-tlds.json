@@ -1,0 +1,28 @@
+{
+  "_comment": "Static TLD risk table. Weights tuned for additive scoring (0-100 scale). Sources: PhishTank/OpenPhish TLD distribution 2023-2024, Spamhaus DBL, plus 2024 .zip/.mov rollout.",
+  "high": {
+    "_weight": 25,
+    "tlds": [
+      "tk", "ml", "ga", "cf", "gq",
+      "zip", "mov", "country", "kim", "loan",
+      "quest", "review", "cricket", "trade", "win",
+      "racing", "accountant", "men", "stream", "download",
+      "click", "link", "rest", "support", "fit"
+    ]
+  },
+  "medium": {
+    "_weight": 12,
+    "tlds": [
+      "top", "xyz", "icu", "rest", "fun", "live", "shop",
+      "site", "online", "store", "tech", "space",
+      "work", "world", "world", "rocks", "buzz",
+      "info", "biz", "cc", "ws"
+    ]
+  },
+  "low": {
+    "_weight": 5,
+    "tlds": [
+      "su", "ru", "ml", "pw", "ph", "ng"
+    ]
+  }
+}

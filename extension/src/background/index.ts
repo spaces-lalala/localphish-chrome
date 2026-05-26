@@ -1,7 +1,8 @@
 // Service Worker entry — routes messages, owns Stage 1 rules and verdict cache.
 // Per plan §3.5, the SW does NOT hold any model; that lives in the Offscreen Document.
 
-import type { RpcRequest, RpcResponse } from "@/types";
+import type { ClassifyResult, RpcRequest, RpcResponse } from "@/types";
+import { runStage1 } from "@/signals/stage1";
 
 const OFFSCREEN_DOCUMENT_PATH = "src/offscreen/offscreen.html";
 
@@ -26,6 +27,18 @@ async function ensureOffscreenDocument(): Promise<void> {
   });
 }
 
+function classifyUrl(url: string): ClassifyResult {
+  const r = runStage1(url);
+  return {
+    verdict: r.verdict,
+    riskScore: r.rawScore,
+    signals: r.signals,
+    reasons: r.signals.map((s) => s.detail ?? s.id),
+    backend: "rules-only",
+    latencyMs: r.latencyMs
+  };
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[LocalPhish] Service worker installed.");
 });
@@ -36,28 +49,23 @@ chrome.runtime.onMessage.addListener(
       try {
         switch (msg.type) {
           case "ping":
-            await ensureOffscreenDocument();
+            // Note: do NOT create the offscreen document here. We only spin it
+            // up when an LLM/vision backend is actually requested.
             sendResponse({ type: "pong", backend: "rules-only" });
             return;
           case "getBackendStatus":
             sendResponse({ type: "backendStatus", backend: "rules-only", ready: true });
             return;
-          case "classifyPage":
-            // Stage 1 rules will live here; for scaffold we echo a placeholder.
-            sendResponse({
-              type: "classifyResult",
-              result: {
-                verdict: "safe",
-                riskScore: 0,
-                signals: [],
-                reasons: ["scaffold: classifier not yet implemented"],
-                backend: "rules-only",
-                latencyMs: 0
-              }
-            });
+          case "classifyPage": {
+            const result = classifyUrl(msg.features.url);
+            sendResponse({ type: "classifyResult", result });
+            return;
+          }
+          case "rebuildBrandDb":
+            sendResponse({ type: "error", message: "rebuildBrandDb not yet implemented" });
             return;
           default:
-            sendResponse({ type: "error", message: `unknown rpc type` });
+            sendResponse({ type: "error", message: "unknown rpc type" });
         }
       } catch (err) {
         sendResponse({ type: "error", message: (err as Error).message });
@@ -66,3 +74,7 @@ chrome.runtime.onMessage.addListener(
     return true; // keep the message channel open for async sendResponse
   }
 );
+
+// Kept for forward-compat: when LLM backends arrive, the first classifyPage
+// that needs them will call ensureOffscreenDocument().
+export { ensureOffscreenDocument };

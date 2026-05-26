@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import type { ClassifyResult, RpcRequest, RpcResponse, Verdict } from "@/types";
+import type { ClassifyResult, PageFeatures, RpcRequest, RpcResponse, Verdict } from "@/types";
 
 const verdictLabel: Record<Verdict, string> = {
   safe: "SAFE",
@@ -9,6 +9,29 @@ const verdictLabel: Record<Verdict, string> = {
   dangerous: "DANGEROUS"
 };
 
+async function classifyActiveTab(): Promise<ClassifyResult> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.url) throw new Error("no active tab URL");
+
+  // Popup-initiated classify carries only the URL; richer DOM features arrive
+  // via the content script on page-load. Stage 1 needs only the URL anyway.
+  const features: PageFeatures = {
+    url: tab.url,
+    etld1: "",
+    title: tab.title ?? "",
+    visibleTextSample: "",
+    hasPasswordField: false,
+    hasOtpField: false,
+    crossOriginFormAction: false
+  };
+
+  const req: RpcRequest = { type: "classifyPage", tabId: tab.id ?? -1, features };
+  const res = (await chrome.runtime.sendMessage(req)) as RpcResponse;
+  if (res.type === "error") throw new Error(res.message);
+  if (res.type !== "classifyResult") throw new Error(`unexpected rpc reply: ${res.type}`);
+  return res.result;
+}
+
 function App() {
   const [result, setResult] = useState<ClassifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -16,20 +39,7 @@ function App() {
   useEffect(() => {
     void (async () => {
       try {
-        const ping: RpcRequest = { type: "ping" };
-        const res = (await chrome.runtime.sendMessage(ping)) as RpcResponse;
-        if (res.type === "pong") {
-          setResult({
-            verdict: "safe",
-            riskScore: 0,
-            signals: [],
-            reasons: ["Scaffold OK — classifier not yet wired up."],
-            backend: res.backend,
-            latencyMs: 0
-          });
-        } else if (res.type === "error") {
-          setError(res.message);
-        }
+        setResult(await classifyActiveTab());
       } catch (e) {
         setError((e as Error).message);
       }
@@ -64,16 +74,20 @@ function App() {
         <span>Risk score</span>
         <span class="score">{result.riskScore}</span>
       </div>
-      <ul class="reasons">
-        {result.reasons.map((r) => (
-          <li>{r}</li>
-        ))}
-      </ul>
+      {result.reasons.length === 0 ? (
+        <p style={{ fontSize: 12, opacity: 0.7 }}>No risk signals detected.</p>
+      ) : (
+        <ul class="reasons">
+          {result.reasons.map((r) => (
+            <li>{r}</li>
+          ))}
+        </ul>
+      )}
       <button class="deep" disabled>
         Deep visual check (Stage 4b) — coming soon
       </button>
       <div class="backend">
-        Active backend: <strong>{result.backend}</strong>
+        Active backend: <strong>{result.backend}</strong> · {result.latencyMs.toFixed(1)} ms
       </div>
     </div>
   );

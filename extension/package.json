@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "preact": "^10.24.3",
+    "tldts": "^6.1.58",
     "zod": "^3.23.8"
   },
   "devDependencies": {
