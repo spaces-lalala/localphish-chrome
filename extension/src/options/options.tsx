@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { useState } from "preact/hooks";
-import type { ClassifyResult, PageFeatures, RpcRequest, RpcResponse, Verdict } from "@/types";
+import { emptyFeatures, type ClassifyResult, type RpcRequest, type RpcResponse, type Verdict } from "@/types";
 
 interface Preset {
   label: string;
@@ -76,15 +76,7 @@ function verdictClass(v: Verdict): string {
 }
 
 async function classify(url: string): Promise<ClassifyResult> {
-  const features: PageFeatures = {
-    url,
-    etld1: "",
-    title: "",
-    visibleTextSample: "",
-    hasPasswordField: false,
-    hasOtpField: false,
-    crossOriginFormAction: false
-  };
+  const features = emptyFeatures(url);
   const req: RpcRequest = { type: "classifyPage", tabId: -1, features };
   const res = (await chrome.runtime.sendMessage(req)) as RpcResponse;
   if (res.type === "error") throw new Error(res.message);

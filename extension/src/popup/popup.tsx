@@ -1,6 +1,12 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import type { ClassifyResult, PageFeatures, RpcRequest, RpcResponse, Verdict } from "@/types";
+import {
+  emptyFeatures,
+  type ClassifyResult,
+  type RpcRequest,
+  type RpcResponse,
+  type Verdict
+} from "@/types";
 
 const verdictLabel: Record<Verdict, string> = {
   safe: "SAFE",
@@ -9,26 +15,31 @@ const verdictLabel: Record<Verdict, string> = {
   dangerous: "DANGEROUS"
 };
 
-async function classifyActiveTab(): Promise<ClassifyResult> {
+/**
+ * 1. Try the SW's per-tab cache (populated by the content script on page load).
+ *    -> This is the path that includes Stage 2 DOM signals.
+ * 2. If empty (e.g. content script never ran on this tab, or about: pages),
+ *    fall back to a fresh URL-only classify (Stage 1 only).
+ */
+async function getVerdictForActiveTab(): Promise<ClassifyResult> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.url) throw new Error("no active tab URL");
 
-  // Popup-initiated classify carries only the URL; richer DOM features arrive
-  // via the content script on page-load. Stage 1 needs only the URL anyway.
-  const features: PageFeatures = {
-    url: tab.url,
-    etld1: "",
-    title: tab.title ?? "",
-    visibleTextSample: "",
-    hasPasswordField: false,
-    hasOtpField: false,
-    crossOriginFormAction: false
-  };
+  if (tab.id != null && tab.id >= 0) {
+    const req: RpcRequest = { type: "getTabVerdict", tabId: tab.id };
+    const res = (await chrome.runtime.sendMessage(req)) as RpcResponse;
+    if (res.type === "tabVerdict" && res.result) {
+      return res.result;
+    }
+  }
 
+  // Fallback: classify the URL directly. Content script may not have run on
+  // chrome:// / about: / extension URLs, or the SW may have just restarted.
+  const features = emptyFeatures(tab.url, tab.title ?? "");
   const req: RpcRequest = { type: "classifyPage", tabId: tab.id ?? -1, features };
   const res = (await chrome.runtime.sendMessage(req)) as RpcResponse;
   if (res.type === "error") throw new Error(res.message);
-  if (res.type !== "classifyResult") throw new Error(`unexpected rpc reply: ${res.type}`);
+  if (res.type !== "classifyResult") throw new Error(`unexpected: ${res.type}`);
   return res.result;
 }
 
@@ -39,7 +50,7 @@ function App() {
   useEffect(() => {
     void (async () => {
       try {
-        setResult(await classifyActiveTab());
+        setResult(await getVerdictForActiveTab());
       } catch (e) {
         setError((e as Error).message);
       }
@@ -87,7 +98,8 @@ function App() {
         Deep visual check (Stage 4b) — coming soon
       </button>
       <div class="backend">
-        Active backend: <strong>{result.backend}</strong> · {result.latencyMs.toFixed(1)} ms
+        Stages: <strong>{result.stagesRan.join(" → ")}</strong> ·{" "}
+        backend <strong>{result.backend}</strong> · {result.latencyMs.toFixed(1)} ms
         <br />
         <a
           href="#"
