@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>LocalPhish offscreen</title>
+  </head>
+  <body>
+    <!--
+      Offscreen Document — invisible, persistent DOM owned by the extension.
+      Per plan §3.5, this is where WebGPU contexts and model engines live so the
+      Service Worker can be evicted after 30s without losing model state.
+    -->
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+# ============================================================
+# Course-specific artifacts — NOT part of the shippable service.
+# Kept locally for the term project; never committed.
+# ============================================================
+Project_handout.md
+week12.pdf
+week12_gemini.md
+week12*.md
+docs/week14_individual.md
+docs/week15_individual.md
+docs/final_report.md
+docs/submit/
+docs/*_submit/
+docs/*.docx
+docs/*.pdf
+
+# Personal grading / submission scratch
+SUBMIT/
+submit/
+*.draft.md
+notes_private/
+
+# ============================================================
+# Node / TypeScript / Vite
+# ============================================================
+node_modules/
+dist/
+build/
+.vite/
+.turbo/
+*.tsbuildinfo
+.eslintcache
+
+# ============================================================
+# Python / uv
+# ============================================================
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# ============================================================
+# Evaluation outputs (heavy / regenerable)
+# ============================================================
+eval/results/*.csv
+eval/results/*.parquet
+eval/datasets/raw/
+eval/datasets/cache/
+eval/playwright-report/
+eval/.playwright/
+
+# Models and embeddings — too large for git, fetched on demand.
+*.onnx
+*.gguf
+*.safetensors
+*.bin
+extension/src/data/brand-embeddings.json
+extension/src/data/tranco-top-100k.json
+
+# ============================================================
+# Secrets & env
+# ============================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ============================================================
+# OS / editor
+# ============================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+*.swp
+*~
+
+# Keep VS Code recommended settings checked in, ignore personal state.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# JetBrains
+.idea/
+
+# ============================================================
+# Claude / agent scratch
+# ============================================================
+.claude/
+CLAUDE.md.local

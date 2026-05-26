@@ -1,0 +1,20 @@
+# Normalize line endings: store as LF in the repo, check out as native on each
+# platform. Anyone cloning on Windows still gets working CRLF locally.
+* text=auto eol=lf
+
+# Lockfiles stay LF everywhere to avoid diff noise.
+package-lock.json text eol=lf
+uv.lock text eol=lf
+
+# Binary asset types — never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.onnx binary
+*.gguf binary
+*.safetensors binary
+*.woff binary
+*.woff2 binary
