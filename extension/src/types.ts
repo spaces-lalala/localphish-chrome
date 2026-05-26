@@ -40,14 +40,10 @@ export interface PageFeatures {
   externalScriptUrls: string[];
 
   // Visual obfuscation counts
-  /** iframes that are display:none, visibility:hidden, or have w/h ≤ 2px. */
   hiddenIframeCount: number;
-  /** Non-iframe elements rendered at ≤1×1 px, off-screen, or 0 opacity, that
-   *  still carry interactive content (link, button, form). */
   tinyElementCount: number;
 
   // For backwards compatibility with popup-initiated URL-only classifies.
-  // Empty string from synthetic features; content script fills it for telemetry.
   etld1: string;
 }
 
@@ -61,7 +57,27 @@ export interface ClassifyResult {
   stagesRan: StageId[];
 }
 
-// ---- RPC envelopes ---------------------------------------------------------
+// ---- Stage 3 — LLM I/O ---------------------------------------------------
+
+export interface Stage3Input {
+  url: string;
+  etld1: string;
+  title: string;
+  /** ≤ 1500 chars; further truncation done in the prompt builder. */
+  textSample: string;
+  /** Rule-layer signals shipped to the LLM as additional grounding. */
+  ruleSignals: Array<{ id: string; weight: number; detail?: string }>;
+}
+
+export interface Stage3Output {
+  riskScore: number;
+  verdict: Verdict;
+  category: string;
+  reasons: string[];
+  needVisual: boolean;
+}
+
+// ---- Runtime RPC envelopes (SW <-> content / popup / options) -----------
 
 export type RpcRequest =
   | { type: "ping" }
@@ -74,8 +90,26 @@ export type RpcResponse =
   | { type: "pong"; backend: LLMBackend }
   | { type: "classifyResult"; result: ClassifyResult }
   | { type: "tabVerdict"; result: ClassifyResult | null }
-  | { type: "backendStatus"; backend: LLMBackend; ready: boolean }
+  | { type: "backendStatus"; backend: LLMBackend; ready: boolean; reason?: string }
   | { type: "error"; message: string };
+
+// ---- Offscreen RPC envelopes (SW <-> offscreen document) ----------------
+// Carry an explicit `target` tag so listeners that share the same
+// chrome.runtime.onMessage channel can ignore messages not meant for them.
+
+export type OffscreenRequest =
+  | { target: "offscreen"; type: "probe" }
+  | { target: "offscreen"; type: "stage3Classify"; input: Stage3Input };
+
+export type OffscreenResponse =
+  | { type: "offscreenProbe"; backend: LLMBackend; ready: boolean; reason?: string }
+  | {
+      type: "offscreenStage3Result";
+      result: Stage3Output | null;
+      backend: LLMBackend;
+      latencyMs: number;
+      error?: string;
+    };
 
 // Empty-feature helper for popup synthesis / URL-only classify entry points.
 export function emptyFeatures(url: string, title = ""): PageFeatures {

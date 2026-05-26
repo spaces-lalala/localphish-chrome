@@ -5,6 +5,7 @@ import {
   type ClassifyResult,
   type RpcRequest,
   type RpcResponse,
+  type Signal,
   type Verdict
 } from "@/types";
 
@@ -15,12 +16,6 @@ const verdictLabel: Record<Verdict, string> = {
   dangerous: "DANGEROUS"
 };
 
-/**
- * 1. Try the SW's per-tab cache (populated by the content script on page load).
- *    -> This is the path that includes Stage 2 DOM signals.
- * 2. If empty (e.g. content script never ran on this tab, or about: pages),
- *    fall back to a fresh URL-only classify (Stage 1 only).
- */
 async function getVerdictForActiveTab(): Promise<ClassifyResult> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.url) throw new Error("no active tab URL");
@@ -33,14 +28,20 @@ async function getVerdictForActiveTab(): Promise<ClassifyResult> {
     }
   }
 
-  // Fallback: classify the URL directly. Content script may not have run on
-  // chrome:// / about: / extension URLs, or the SW may have just restarted.
   const features = emptyFeatures(tab.url, tab.title ?? "");
   const req: RpcRequest = { type: "classifyPage", tabId: tab.id ?? -1, features };
   const res = (await chrome.runtime.sendMessage(req)) as RpcResponse;
   if (res.type === "error") throw new Error(res.message);
   if (res.type !== "classifyResult") throw new Error(`unexpected: ${res.type}`);
   return res.result;
+}
+
+function groupByStage(signals: Signal[]): Record<string, Signal[]> {
+  const out: Record<string, Signal[]> = {};
+  for (const s of signals) {
+    (out[s.stage] ??= []).push(s);
+  }
+  return out;
 }
 
 function App() {
@@ -75,6 +76,15 @@ function App() {
     );
   }
 
+  const byStage = groupByStage(result.signals);
+  const stageLabels: Record<string, string> = {
+    stage1: "URL rules",
+    stage2: "DOM features",
+    stage3: "LLM reasoning",
+    stage4a: "Logo retrieval",
+    stage4b: "Visual reasoning"
+  };
+
   return (
     <div>
       <h1>
@@ -85,15 +95,29 @@ function App() {
         <span>Risk score</span>
         <span class="score">{result.riskScore}</span>
       </div>
-      {result.reasons.length === 0 ? (
+
+      {result.signals.length === 0 ? (
         <p style={{ fontSize: 12, opacity: 0.7 }}>No risk signals detected.</p>
       ) : (
-        <ul class="reasons">
-          {result.reasons.map((r) => (
-            <li>{r}</li>
-          ))}
-        </ul>
+        Object.entries(byStage).map(([stage, sigs]) => (
+          <div style={{ marginTop: 6 }}>
+            <div style={{ fontSize: 11, opacity: 0.7, fontWeight: 600, textTransform: "uppercase" }}>
+              {stageLabels[stage] ?? stage}
+            </div>
+            <ul class="reasons">
+              {sigs.map((s) => (
+                <li>
+                  {s.detail ?? s.id}
+                  {s.weight > 0 && (
+                    <span style={{ color: "#dc2626", fontWeight: 600 }}> +{s.weight}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
       )}
+
       <button class="deep" disabled>
         Deep visual check (Stage 4b) — coming soon
       </button>

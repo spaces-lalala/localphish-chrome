@@ -1,15 +1,22 @@
 // Service Worker entry — routes messages, owns the rule-layer cascade and
-// the per-tab verdict cache. Per plan §3.5 the SW does NOT hold any model.
+// the per-tab verdict cache. Per plan §3.5 the SW does NOT hold any model;
+// Stage 3 is delegated to the Offscreen Document over a tagged RPC channel.
 
-import type { ClassifyResult, RpcRequest, RpcResponse } from "@/types";
+import type {
+  ClassifyResult,
+  LLMBackend,
+  OffscreenRequest,
+  OffscreenResponse,
+  RpcRequest,
+  RpcResponse,
+  Stage3Input
+} from "@/types";
 import { runCascade } from "@/signals/cascade";
 
 const OFFSCREEN_DOCUMENT_PATH = "src/offscreen/offscreen.html";
 
-// In-memory per-tab cache. The SW may be evicted; chrome.storage.session would
-// survive that and is plan §3.5's eventual home. For now in-memory is fine —
-// the cache is just a UX optimization, not load-bearing.
 const tabVerdicts = new Map<number, ClassifyResult>();
+let cachedBackendStatus: { backend: LLMBackend; ready: boolean; reason?: string } | null = null;
 
 async function hasOffscreenDocument(): Promise<boolean> {
   if (typeof chrome.runtime.getContexts === "function") {
@@ -30,11 +37,61 @@ async function ensureOffscreenDocument(): Promise<void> {
   });
 }
 
+async function sendToOffscreen<T extends OffscreenResponse>(msg: OffscreenRequest): Promise<T> {
+  await ensureOffscreenDocument();
+  return (await chrome.runtime.sendMessage(msg)) as T;
+}
+
+async function probeOffscreenBackend(): Promise<{ backend: LLMBackend; ready: boolean; reason?: string }> {
+  if (cachedBackendStatus) return cachedBackendStatus;
+  try {
+    const r = await sendToOffscreen<Extract<OffscreenResponse, { type: "offscreenProbe" }>>({
+      target: "offscreen",
+      type: "probe"
+    });
+    cachedBackendStatus = { backend: r.backend, ready: r.ready, reason: r.reason };
+  } catch (err) {
+    cachedBackendStatus = {
+      backend: "rules-only",
+      ready: false,
+      reason: `offscreen probe failed: ${(err as Error).message}`
+    };
+  }
+  return cachedBackendStatus;
+}
+
+async function callStage3(
+  input: Stage3Input
+): Promise<{ result: Stage3Output | null; backend: LLMBackend; latencyMs: number; error?: string }> {
+  // Don't bother spinning up offscreen if we already know LLM is unavailable.
+  const status = await probeOffscreenBackend();
+  if (!status.ready) {
+    return { result: null, backend: status.backend, latencyMs: 0, error: status.reason };
+  }
+  try {
+    const r = await sendToOffscreen<Extract<OffscreenResponse, { type: "offscreenStage3Result" }>>({
+      target: "offscreen",
+      type: "stage3Classify",
+      input
+    });
+    return { result: r.result, backend: r.backend, latencyMs: r.latencyMs, error: r.error };
+  } catch (err) {
+    return {
+      result: null,
+      backend: "rules-only",
+      latencyMs: 0,
+      error: `Stage 3 RPC failed: ${(err as Error).message}`
+    };
+  }
+}
+
+// Local re-import to avoid circular type emission concerns.
+type Stage3Output = import("@/types").Stage3Output;
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[LocalPhish] Service worker installed.");
 });
 
-// Wipe a tab's cached verdict when it closes or navigates away.
 chrome.tabs.onRemoved.addListener((tabId) => {
   tabVerdicts.delete(tabId);
 });
@@ -44,44 +101,57 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(
-  (msg: RpcRequest, sender, sendResponse: (r: RpcResponse) => void) => {
-    void (async () => {
-      try {
-        switch (msg.type) {
-          case "ping":
-            sendResponse({ type: "pong", backend: "rules-only" });
-            return;
-          case "getBackendStatus":
-            sendResponse({ type: "backendStatus", backend: "rules-only", ready: true });
-            return;
-          case "classifyPage": {
-            const result = runCascade(msg.features);
-            // Prefer the sender's actual tab id over whatever the caller passed.
-            const tabId = sender.tab?.id ?? msg.tabId ?? -1;
-            if (tabId >= 0) {
-              tabVerdicts.set(tabId, result);
-            }
-            sendResponse({ type: "classifyResult", result });
-            return;
-          }
-          case "getTabVerdict": {
-            const cached = tabVerdicts.get(msg.tabId) ?? null;
-            sendResponse({ type: "tabVerdict", result: cached });
-            return;
-          }
-          case "rebuildBrandDb":
-            sendResponse({ type: "error", message: "rebuildBrandDb not yet implemented" });
-            return;
-          default:
-            sendResponse({ type: "error", message: "unknown rpc type" });
-        }
-      } catch (err) {
-        sendResponse({ type: "error", message: (err as Error).message });
-      }
-    })();
-    return true;
+chrome.runtime.onMessage.addListener((msg: unknown, sender, sendResponse) => {
+  // Ignore messages routed to other contexts (esp. the Offscreen Document).
+  if (typeof msg === "object" && msg !== null && (msg as { target?: string }).target === "offscreen") {
+    return false;
   }
-);
+  const req = msg as RpcRequest;
+
+  void (async () => {
+    try {
+      switch (req.type) {
+        case "ping": {
+          const s = await probeOffscreenBackend();
+          (sendResponse as (r: RpcResponse) => void)({ type: "pong", backend: s.backend });
+          return;
+        }
+        case "getBackendStatus": {
+          const s = await probeOffscreenBackend();
+          (sendResponse as (r: RpcResponse) => void)({
+            type: "backendStatus",
+            backend: s.backend,
+            ready: s.ready,
+            reason: s.reason
+          });
+          return;
+        }
+        case "classifyPage": {
+          const result = await runCascade(req.features, { stage3: callStage3 });
+          const tabId = sender.tab?.id ?? req.tabId ?? -1;
+          if (tabId >= 0) {
+            tabVerdicts.set(tabId, result);
+          }
+          (sendResponse as (r: RpcResponse) => void)({ type: "classifyResult", result });
+          return;
+        }
+        case "getTabVerdict": {
+          const cached = tabVerdicts.get(req.tabId) ?? null;
+          (sendResponse as (r: RpcResponse) => void)({ type: "tabVerdict", result: cached });
+          return;
+        }
+        case "rebuildBrandDb":
+          (sendResponse as (r: RpcResponse) => void)({ type: "error", message: "rebuildBrandDb not yet implemented" });
+          return;
+        default:
+          (sendResponse as (r: RpcResponse) => void)({ type: "error", message: "unknown rpc type" });
+      }
+    } catch (err) {
+      (sendResponse as (r: RpcResponse) => void)({ type: "error", message: (err as Error).message });
+    }
+  })();
+
+  return true;
+});
 
 export { ensureOffscreenDocument };

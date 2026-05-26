@@ -1,36 +1,73 @@
-// Offscreen Document — persistent host for WebLLM / Transformers.js / WebGPU.
-// Scaffold only: receives RPCs and echoes back. Real backends arrive in Week 14/15.
+// Offscreen Document — persistent host for the LLM router and (later) the
+// vision pipeline. Plan §3.5: this is where WebGPU contexts and model engines
+// live so the Service Worker can be evicted without losing model state.
 
-import type { RpcRequest, RpcResponse } from "@/types";
+import type { OffscreenRequest, OffscreenResponse } from "@/types";
+import { LLMRouter } from "@/llm/router";
 
-async function probeWebGPU(): Promise<{ available: boolean; adapter?: string }> {
-  if (!("gpu" in navigator)) return { available: false };
-  try {
-    const adapter = await (navigator as Navigator & {
-      gpu: { requestAdapter: () => Promise<GPUAdapter | null> };
-    }).gpu.requestAdapter();
-    if (!adapter) return { available: false };
-    return { available: true, adapter: "ok" };
-  } catch {
-    return { available: false };
+const router = new LLMRouter("auto");
+
+// Lazy init — wait for the first probe / classify to pay the model-load cost.
+let initPromise: Promise<void> | null = null;
+function ensureInit(): Promise<void> {
+  if (!initPromise) {
+    initPromise = (async () => {
+      const s = await router.init();
+      console.log(`[LocalPhish offscreen] router state: ${s.backend} ready=${s.ready} ${s.reason ?? ""}`);
+    })();
   }
+  return initPromise;
 }
 
 chrome.runtime.onMessage.addListener(
-  (msg: RpcRequest, _sender, sendResponse: (r: RpcResponse) => void) => {
+  (msg: unknown, _sender, sendResponse: (r: OffscreenResponse) => void) => {
+    // Filter messages addressed at this context only.
+    if (typeof msg !== "object" || msg === null) return false;
+    const m = msg as Partial<OffscreenRequest>;
+    if (m.target !== "offscreen") return false;
+
     void (async () => {
+      await ensureInit();
       try {
-        switch (msg.type) {
-          case "ping": {
-            const gpu = await probeWebGPU();
-            sendResponse({ type: "pong", backend: gpu.available ? "webllm" : "rules-only" });
+        switch (m.type) {
+          case "probe": {
+            const s = router.getState();
+            sendResponse({
+              type: "offscreenProbe",
+              backend: s.backend,
+              ready: s.ready,
+              reason: s.reason
+            });
+            return;
+          }
+          case "stage3Classify": {
+            const r = await router.stage3Classify(m.input!);
+            sendResponse({
+              type: "offscreenStage3Result",
+              result: r.result,
+              backend: r.backend,
+              latencyMs: r.latencyMs,
+              error: r.error
+            });
             return;
           }
           default:
-            sendResponse({ type: "error", message: "offscreen: unhandled rpc" });
+            sendResponse({
+              type: "offscreenStage3Result",
+              result: null,
+              backend: "rules-only",
+              latencyMs: 0,
+              error: `offscreen: unknown type "${String(m.type)}"`
+            });
         }
       } catch (err) {
-        sendResponse({ type: "error", message: (err as Error).message });
+        sendResponse({
+          type: "offscreenStage3Result",
+          result: null,
+          backend: "rules-only",
+          latencyMs: 0,
+          error: (err as Error).message
+        });
       }
     })();
     return true;
@@ -38,6 +75,3 @@ chrome.runtime.onMessage.addListener(
 );
 
 console.log("[LocalPhish] Offscreen document loaded.");
-
-// Minimal interface used above — kept here to avoid pulling @types/webgpu in scaffold.
-type GPUAdapter = { limits: { maxBufferSize: number } };
