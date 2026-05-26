@@ -88,6 +88,16 @@ function App() {
       </button>
       <div class="backend">
         Active backend: <strong>{result.backend}</strong> · {result.latencyMs.toFixed(1)} ms
+        <br />
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            void chrome.runtime.openOptionsPage();
+          }}
+        >
+          Open URL Tester →
+        </a>
       </div>
     </div>
   );

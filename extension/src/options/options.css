@@ -1,0 +1,105 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  max-width: 880px;
+  margin: 24px auto;
+  padding: 0 20px 60px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 24px 0 8px; }
+.note { color: #6b7280; font-size: 13px; margin-top: 0; }
+
+.tester {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.tester input {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: ui-monospace, monospace;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: Canvas;
+  color: CanvasText;
+}
+.tester button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #2563eb;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tester button:hover { background: #1d4ed8; }
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+  margin: 12px 0 24px;
+}
+.preset {
+  padding: 8px 10px;
+  background: rgba(127, 127, 127, 0.08);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font-size: 12.5px;
+}
+.preset:hover { background: rgba(127, 127, 127, 0.18); }
+.preset .label { font-weight: 600; display: block; margin-bottom: 2px; }
+.preset .url { font-family: ui-monospace, monospace; font-size: 11.5px; color: #4b5563; word-break: break-all; }
+
+.result {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(127, 127, 127, 0.06);
+  border-left: 4px solid #9ca3af;
+  border-radius: 4px;
+}
+.result.safe       { border-left-color: #10b981; }
+.result.caution    { border-left-color: #f59e0b; }
+.result.suspicious { border-left-color: #f97316; }
+.result.dangerous  { border-left-color: #ef4444; }
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.result-header .verdict {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.result-header .score {
+  font-size: 22px;
+  font-weight: 700;
+}
+.result-header .meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+ul.signals {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+}
+ul.signals li { margin: 3px 0; }
+ul.signals .id { font-family: ui-monospace, monospace; color: #2563eb; }
+ul.signals .weight { color: #ef4444; font-weight: 600; margin-left: 4px; }

