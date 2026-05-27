@@ -25,18 +25,21 @@ interface NanoSessionModern {
 
 type LanguageHint = { type: "text"; languages: string[] };
 
+interface LanguageHintBag {
+  expectedInputs?: LanguageHint[];
+  expectedOutputs?: LanguageHint[];
+}
+
 interface LanguageModelGlobal {
-  availability?(): Promise<string>;
-  capabilities?(): Promise<{ available?: string }>;
-  create(opts: {
+  availability?(opts?: LanguageHintBag): Promise<string>;
+  capabilities?(opts?: LanguageHintBag): Promise<{ available?: string }>;
+  create(opts: LanguageHintBag & {
     temperature?: number;
     topK?: number;
     initialPrompts?: Array<{ role: "system" | "user"; content: string }>;
     systemPrompt?: string;
-    /** Required in Chrome ≥ M138 — model refuses without an explicit hint. */
+    /** Required in some Chrome ≥ M138 builds as an alternative spelling. */
     outputLanguage?: string;
-    expectedInputs?: LanguageHint[];
-    expectedOutputs?: LanguageHint[];
   }): Promise<NanoSessionModern>;
 }
 
@@ -74,10 +77,16 @@ export class NanoBackend implements LLMBackendImpl {
 
   async init(): Promise<ProbeResult> {
     const { modern, old } = getApis();
+    // M148+ enforces language attestation on availability() too, not only
+    // create() — pass the hint everywhere we touch the API.
+    const langBag: LanguageHintBag = {
+      expectedInputs: [{ type: "text", languages: ["en"] }],
+      expectedOutputs: [{ type: "text", languages: ["en"] }]
+    };
 
     if (modern && typeof modern.availability === "function") {
       try {
-        const status = await modern.availability();
+        const status = await modern.availability(langBag);
         if (!isAvailable(status)) {
           return { available: false, reason: `LanguageModel.availability()=${status}` };
         }
@@ -88,7 +97,7 @@ export class NanoBackend implements LLMBackendImpl {
       }
     } else if (old && typeof old.capabilities === "function") {
       try {
-        const caps = await old.capabilities();
+        const caps = await old.capabilities(langBag);
         const status = caps?.available ?? "no";
         if (!isAvailable(status)) {
           return { available: false, reason: `ai.languageModel.capabilities().available=${status}` };
