@@ -52,8 +52,13 @@ eval/results/*.csv
 eval/results/*.parquet
 eval/datasets/raw/
 eval/datasets/cache/
+eval/datasets/phreshphish_*.jsonl
 eval/playwright-report/
 eval/.playwright/
+
+# Temporary PDF / report scratch dumps
+docs/*_pdf_dump.txt
+docs/*_dump.txt
 
 # Models and embeddings — too large for git, fetched on demand.
 *.onnx

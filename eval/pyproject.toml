@@ -18,6 +18,8 @@ dependencies = [
     "httpx>=0.27",
     "playwright>=1.48",
     "pillow>=10.4",
+    "polars>=1.40.1",
+    "pyarrow>=24.0.0",
 ]
 
 [project.optional-dependencies]

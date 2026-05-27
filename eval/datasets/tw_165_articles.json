@@ -1,0 +1,603 @@
+{
+  "_source": "https://165.npa.gov.tw",
+  "_fetched_at": "2026-05-27T14:23:02+00:00",
+  "_categories": {
+    "A": "詐騙手法",
+    "C": "最新案例",
+    "1": "警政公告"
+  },
+  "articles": [
+    {
+      "id": 1747,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "📌其他常見問題 可利用165打詐儀錶板右下方【防詐客服】詢問",
+      "publish_date": "2026-02-05T14:08:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1722,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "最詳細的普發現金詐騙Q&A，哪些是詐騙？接到電話、簡訊、Email如何辨識？普發現金何時可以領取？",
+      "publish_date": "2025-10-27T10:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1716,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "如何辨識詐騙Email？請認明「gov.tw」結尾的官方網站",
+      "publish_date": "2025-09-10T10:39:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1703,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "網路購物遇到詐騙了？社群買賣詐騙手法詳解",
+      "publish_date": "2025-07-28T15:28:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1690,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "使用165全民防騙LINE@帳號查詢涉詐網址通報紀錄。",
+      "publish_date": "2025-07-04T11:07:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1664,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "LINE帳號被盜怎麼辦？「再次登入」功能登入回原手機並還原聊天記錄",
+      "publish_date": "2025-03-27T15:43:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1577,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "如何查詢使用之投資網站/APP，是否為詐騙？",
+      "publish_date": "2024-10-24T15:03:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1558,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "遭詐騙怎麼辦？如何求助？",
+      "publish_date": "2024-08-19T09:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1542,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "如何解除警示帳戶？",
+      "publish_date": "2024-08-01T11:19:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1518,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "如何保護LINE帳號不被盜用？",
+      "publish_date": "2024-07-22T08:37:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1514,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "如何辨識詐騙釣魚簡訊",
+      "publish_date": "2024-06-27T16:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1465,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "LINE帳號被盜怎麼辦？正確處理方式看這裡!",
+      "publish_date": "2024-04-22T14:01:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1433,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "電話無法使用向警方申請復話要帶哪些資料?",
+      "publish_date": "2024-02-16T11:41:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1414,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "超商取貨付款收到詐騙包裹怎麼辦?",
+      "publish_date": "2024-01-29T11:22:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1367,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "警政服務APP「可疑訊息分析」功能介紹",
+      "publish_date": "2023-11-07T09:45:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1026,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "姓名頭像遭冒用 如何檢舉? <LINE教學篇>",
+      "publish_date": "2023-10-17T14:01:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1021,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "臉書帳號遭盜用 怎麼辦? 取回使用權限步驟教學懶人包",
+      "publish_date": "2023-10-05T13:29:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1016,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "常見詐欺六大手法",
+      "publish_date": "2023-07-27T10:22:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1018,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "若遭遇GASH點數詐騙 怎麼辦? 點數防詐鎖卡平臺懶人包",
+      "publish_date": "2023-07-10T09:29:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1017,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "遇到社群平臺一頁式廣告詐騙? 申請退款流程說明!",
+      "publish_date": "2023-07-09T09:30:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1025,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "姓名頭像遭冒用 如何檢舉? <臉書教學篇>",
+      "publish_date": "2023-07-07T16:49:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1024,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "姓名頭像遭冒用 如何檢舉? <IG教學篇>",
+      "publish_date": "2023-07-01T11:23:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1019,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "Telegram 帳號安全設定懶人包",
+      "publish_date": "2023-05-03T14:36:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1022,
+      "category": "A",
+      "category_label": "詐騙手法",
+      "title": "姓名頭像遭冒用 如何檢舉? <YouTube教學篇>",
+      "publish_date": "2022-11-15T16:44:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1745,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "📌最新詐騙手法 請至165打詐儀錶板",
+      "publish_date": "2026-02-05T13:56:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1721,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "【新興手法】假贈送詐騙",
+      "publish_date": "2025-10-07T14:44:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1709,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "拘票註記「抗傳即拘」? 假檢警詐騙的起手式",
+      "publish_date": "2025-08-22T10:02:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1700,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "【新型態詐騙手法】假賣家騙買家",
+      "publish_date": "2025-07-24T15:03:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1699,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "【假冒公務機關詐騙】假警察要求視訊做筆錄",
+      "publish_date": "2025-06-20T14:55:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1641,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "【假中獎詐騙】假客服騙操作網路銀行",
+      "publish_date": "2025-01-09T15:11:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1585,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "近期偽冒用黑貓宅急便客服名義詐騙",
+      "publish_date": "2024-10-14T11:32:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1576,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "釣魚連結要求認證 盜用WhatsApp帳號",
+      "publish_date": "2024-09-26T14:17:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1551,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "假投資網站稱穩賺不賠 當心是假投資詐騙",
+      "publish_date": "2024-08-06T16:40:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1543,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "親友LINE借錢詐騙",
+      "publish_date": "2024-07-22T15:54:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1516,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "IG盲盒抽獎詐騙",
+      "publish_date": "2024-06-27T16:57:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1481,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "舊衣回收換現金？幫小朋友網路報名小小體驗營？都是詐騙!",
+      "publish_date": "2024-05-07T14:19:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1477,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "接到電話說我的證件被冒用，是真的嗎？",
+      "publish_date": "2024-05-06T10:13:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1478,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "幫朋友寵物投票 小心LINE被盜去騙錢",
+      "publish_date": "2024-05-05T10:14:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1474,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "網路賣家請注意 ，買家「無法下單」可能是詐!",
+      "publish_date": "2024-05-02T09:50:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1467,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "不要再被騙第二次，當心二次詐騙！",
+      "publish_date": "2024-04-22T14:13:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1466,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "領獎前得先匯款？IG充斥抽獎詐騙!",
+      "publish_date": "2024-04-22T14:10:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1412,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "詐騙集團怎麼取得金融卡(存摺)? 小心變成詐欺幫助犯!",
+      "publish_date": "2024-01-29T14:13:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1422,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "加入LINE投資群組準備賺大錢嗎? 幾乎都詐騙!",
+      "publish_date": "2024-01-29T14:02:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1425,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "在網路賣東西請小心會騙人的假買家!",
+      "publish_date": "2024-01-29T13:20:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1418,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "投資高獲利，出金卻要先繳稅? 詐術!",
+      "publish_date": "2024-01-29T11:32:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1417,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "假冒金管會或臺灣證券交易所公文詐騙!",
+      "publish_date": "2024-01-29T11:30:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1416,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "LINE輔助認證? 小心親手交出個人帳號密碼!",
+      "publish_date": "2024-01-29T11:27:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1415,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "租屋族看過來，未看房先匯款必是詐騙!",
+      "publish_date": "2024-01-29T11:25:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1426,
+      "category": "C",
+      "category_label": "最新案例",
+      "title": "自稱律師或駭客組織協助幫忙取回詐騙款項? 勿當肥羊!",
+      "publish_date": "2024-01-29T11:21:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1739,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "刑事局掃蕩「一頁式廣告」查緝國內多家物流公司代付涉詐廣告費",
+      "publish_date": "2026-01-02T14:55:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1715,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "慎防普發萬元詐騙",
+      "publish_date": "2025-09-10T10:37:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1710,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "刑事局公布114年上半年「假檢警詐騙」案件分析 接到來電要核對身分 就是詐騙",
+      "publish_date": "2025-08-22T10:18:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1695,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "LINE被盜用？！千萬勿刪APP，利用「再次登入」功能救回帳號",
+      "publish_date": "2025-07-24T09:35:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1701,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "慎防假「普發現金一萬元」簡訊詐騙，切勿點擊不明連結",
+      "publish_date": "2025-07-15T15:10:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1680,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "【公布8月中獎名單】刑事警察局攜手趨勢科技 發送趨勢科技AI防詐達人APP 守護民眾財產",
+      "publish_date": "2025-05-26T15:45:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1671,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "165專線接獲民眾來電詢問神說公司(中華資金交易所)涉違法吸金案",
+      "publish_date": "2025-04-29T15:03:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1670,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "公布114年第一季網路廣告平臺業者 刊登違法投資廣告態樣",
+      "publish_date": "2025-04-26T09:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1650,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "公布113年第四季網路廣告平臺業者 刊登違法投資廣告態樣",
+      "publish_date": "2025-02-08T11:57:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1605,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "公布113年第三季網路廣告平臺業者刊登違法投資廣告 國內知名人士重複遭冒用",
+      "publish_date": "2024-10-24T17:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1564,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "165 打詐儀錶板",
+      "publish_date": "2024-09-16T11:05:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1544,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "公布113年第二季網路廣告平臺業者刊登違法投資廣告 國內知名人士重複遭冒用",
+      "publish_date": "2024-07-23T16:15:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1522,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "租屋預付訂金是詐騙 小心網路租屋陷阱",
+      "publish_date": "2024-07-02T14:26:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1520,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "繳費簡訊真假分不清？ 台水、台電簡訊唯一認證發送碼「111」",
+      "publish_date": "2024-06-28T10:51:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1498,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "公布113年第一季網路平臺業者刊登違法投資廣告 國內知名人士重複遭冒用",
+      "publish_date": "2024-05-26T14:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1487,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "慎防假郵局配送異常通知單，當心遭騙取個資",
+      "publish_date": "2024-05-14T10:59:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1499,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "警方加強防詐行動 提醒民眾慎防LINE盜用詐騙",
+      "publish_date": "2024-05-11T08:00:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1480,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "舊衣回收換現金？幫小朋友網路報名小小體驗營？都是詐騙!",
+      "publish_date": "2024-05-07T14:18:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1479,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "幫朋友寵物投票 小心LINE被盜去騙錢\t",
+      "publish_date": "2024-05-06T10:16:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1460,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "領獎前得先匯款？IG充斥抽獎詐騙",
+      "publish_date": "2024-04-11T17:11:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1448,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "財經名人遭冒名詐騙 提醒民眾慎防投資詐騙廣告",
+      "publish_date": "2024-03-18T17:15:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1434,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "政府與Google防堵RCS詐騙簡訊有成 提醒民眾勿點擊不明連結",
+      "publish_date": "2024-02-17T11:02:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1424,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "165臉書粉絲專頁舉辦抽獎活動中!",
+      "publish_date": "2024-01-30T08:19:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1404,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "聲稱可追回遭詐款項? 都是二次詐騙話術!!!",
+      "publish_date": "2024-01-12T10:19:00+08:00",
+      "content": ""
+    },
+    {
+      "id": 1388,
+      "category": "1",
+      "category_label": "警政公告",
+      "title": "趁電信業者合併之際，RCS詐騙簡訊話術再升級! 刑事局呼籲民眾勿受騙!",
+      "publish_date": "2023-12-08T15:39:00+08:00",
+      "content": ""
+    }
+  ]
+}
