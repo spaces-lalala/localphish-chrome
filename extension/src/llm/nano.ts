@@ -20,6 +20,8 @@ interface NanoSessionModern {
   destroy?(): void;
 }
 
+type LanguageHint = { type: "text"; languages: string[] };
+
 interface LanguageModelGlobal {
   availability?(): Promise<string>;
   capabilities?(): Promise<{ available?: string }>;
@@ -28,6 +30,10 @@ interface LanguageModelGlobal {
     topK?: number;
     initialPrompts?: Array<{ role: "system" | "user"; content: string }>;
     systemPrompt?: string;
+    /** Required in Chrome ≥ M138 — model refuses without an explicit hint. */
+    outputLanguage?: string;
+    expectedInputs?: LanguageHint[];
+    expectedOutputs?: LanguageHint[];
   }): Promise<NanoSessionModern>;
 }
 
@@ -126,18 +132,28 @@ export class NanoBackend implements LLMBackendImpl {
     if (!this.api) throw new Error("api missing");
     const sys = buildNanoSystemPrompt();
 
+    // The prompt and our expected JSON output are both English; declare so
+    // explicitly. Chrome ≥ M138 requires this — the model errors out otherwise.
+    const langHint: LanguageHint[] = [{ type: "text", languages: ["en"] }];
+
     if (this.apiKind === "modern") {
       return await this.api.create({
         temperature: 0,
         topK: 1,
-        initialPrompts: [{ role: "system", content: sys }]
+        initialPrompts: [{ role: "system", content: sys }],
+        outputLanguage: "en",
+        expectedInputs: langHint,
+        expectedOutputs: langHint
       });
     }
     // older API takes systemPrompt directly.
     return await this.api.create({
       temperature: 0,
       topK: 1,
-      systemPrompt: sys
+      systemPrompt: sys,
+      outputLanguage: "en",
+      expectedInputs: langHint,
+      expectedOutputs: langHint
     });
   }
 }
