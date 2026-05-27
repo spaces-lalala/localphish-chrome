@@ -111,16 +111,19 @@ export function runStage1(rawUrl: string): Stage1Result {
 
   const rawScore = Math.min(100, signals.reduce((s, sig) => s + sig.weight, 0));
 
+  // Only an explicit allow-list hit (handled earlier in this function) or a
+  // catastrophic Stage 1 score ≥ DANGER_THRESHOLD should skip downstream
+  // stages. A low Stage 1 score just means the URL string looks innocuous —
+  // it says nothing about the rendered DOM, so Stage 2 still needs to run.
   let verdict: Verdict;
   let shortCircuit = false;
   if (rawScore >= DANGER_THRESHOLD) {
     verdict = "dangerous";
     shortCircuit = true;
-  } else if (rawScore < SAFE_THRESHOLD) {
-    verdict = "safe";
-    shortCircuit = true;
   } else if (rawScore >= 50) {
     verdict = "suspicious";
+  } else if (rawScore < SAFE_THRESHOLD) {
+    verdict = "safe";
   } else {
     verdict = "caution";
   }
