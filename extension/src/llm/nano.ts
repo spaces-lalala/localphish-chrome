@@ -16,7 +16,10 @@ import { buildNanoSystemPrompt } from "@/prompts/phishing_v1_nano";
 // a single set of TS declarations. Each surface is detected at runtime.
 
 interface NanoSessionModern {
-  prompt(text: string): Promise<string>;
+  prompt(
+    text: string,
+    opts?: { outputLanguage?: string; language?: string }
+  ): Promise<string>;
   destroy?(): void;
 }
 
@@ -115,7 +118,13 @@ export class NanoBackend implements LLMBackendImpl {
     }
 
     const timeoutMs = opts.timeoutMs ?? 15_000;
-    return await withTimeout(this.session.prompt(prompt), timeoutMs);
+    // Some Chrome M138/M139 builds still demand a language hint at prompt()
+    // time even when the session declared it; pass it again as a belt-and-
+    // braces. Extras are ignored by versions that don't care.
+    return await withTimeout(
+      this.session.prompt(prompt, { outputLanguage: "en", language: "en" }),
+      timeoutMs
+    );
   }
 
   async destroy(): Promise<void> {
