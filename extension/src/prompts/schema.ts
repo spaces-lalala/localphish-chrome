@@ -16,7 +16,11 @@ export const Stage3OutputSchema = z.object({
   risk_score: z.number().int().min(0).max(100),
   verdict: z.enum(["safe", "caution", "suspicious", "dangerous"]),
   category: CategoryField,
-  reasons: z.array(z.string().min(1).max(220)).max(8),
+  // reasons[] is OPTIONAL — Nano sometimes truncates inside the category array
+  // before reaching reasons. We'd rather recover the verdict + category from
+  // a half-output than fail the whole parse. The cascade will fill a synthetic
+  // "LLM output was truncated" reason downstream when this happens.
+  reasons: z.array(z.string().min(1).max(220)).max(8).optional().default([]),
   need_visual: z.boolean().optional().default(false)
 });
 
@@ -166,11 +170,17 @@ export function parseStage3Output(raw: string): Stage3Output | null {
     const result = Stage3OutputSchema.safeParse(parsed);
     if (!result.success) continue;
     const v = result.data;
+    // If reasons[] came back empty (truncated mid-output), surface a synthetic
+    // marker so the UI shows the user the model did decide, just lost the
+    // explanation. The verdict + category are the load-bearing fields.
+    const reasons = v.reasons.length > 0
+      ? v.reasons
+      : ["LLM verdict + category recovered; reasons truncated mid-output"];
     return {
       riskScore: v.risk_score,
       verdict: v.verdict,
       category: v.category,
-      reasons: v.reasons,
+      reasons,
       needVisual: v.need_visual ?? false
     };
   }
