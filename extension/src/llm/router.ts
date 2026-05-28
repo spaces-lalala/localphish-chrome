@@ -98,26 +98,37 @@ export class LLMRouter {
     }
 
     // Retry once with a corrective system message in-band.
+    let retryRaw = "";
     try {
-      const retryRaw = await backend.run(buildTwNanoRetryPrompt(raw));
+      retryRaw = await backend.run(buildTwNanoRetryPrompt(raw));
       parsed = parseStage3Output(retryRaw);
       if (parsed) {
         return { result: parsed, backend: backend.id, latencyMs: performance.now() - t0 };
       }
     } catch (e) {
+      // Surface both the first attempt's raw text and the retry exception so we
+      // can tell from the offscreen console whether Nano went silent, blurted
+      // Chinese, or just emitted broken JSON.
+      console.warn("[LocalPhish] Nano retry threw. First raw output was:", raw);
       return {
         result: null,
         backend: backend.id,
         latencyMs: performance.now() - t0,
-        error: `retry failed: ${(e as Error).message}`
+        error: `retry failed: ${(e as Error).message} | first 200 chars: ${snippet(raw)}`
       };
     }
 
+    console.warn(
+      "[LocalPhish] Nano returned non-JSON twice. First:",
+      raw,
+      "\nRetry:",
+      retryRaw
+    );
     return {
       result: null,
       backend: backend.id,
       latencyMs: performance.now() - t0,
-      error: "LLM returned non-JSON twice"
+      error: `LLM returned non-JSON twice. first[0..120]="${snippet(raw, 120)}" retry[0..120]="${snippet(retryRaw, 120)}"`
     };
   }
 
@@ -125,4 +136,10 @@ export class LLMRouter {
     if (this.nano?.ready) return this.nano;
     return null;
   }
+}
+
+function snippet(s: string, n = 200): string {
+  if (!s) return "(empty)";
+  const clipped = s.slice(0, n).replace(/\s+/g, " ").trim();
+  return clipped.length < s.length ? `${clipped}…` : clipped;
 }
