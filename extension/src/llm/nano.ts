@@ -126,9 +126,14 @@ export class NanoBackend implements LLMBackendImpl {
       this.session = await this.createSession();
     }
 
-    const timeoutMs = opts.timeoutMs ?? 15_000;
+    // 25 s budget — empirically: short English fixture ~3.7 s warm, longer
+    // 繁中-heavy fixtures (ETC overdue, 1.5 KB visible text) push past 15 s
+    // on a cold Nano session. 25 s covers cold-start + heavy input while
+    // still bounding the popup loading state to something the user will
+    // tolerate.
+    const timeoutMs = opts.timeoutMs ?? 25_000;
     // Some Chrome M138/M139 builds still demand a language hint at prompt()
-    // time even when the session declared it; pass it again as a belt-and-
+    // time even when the session declared it; pass it again as belt-and-
     // braces. Extras are ignored by versions that don't care.
     return await withTimeout(
       this.session.prompt(prompt, { outputLanguage: "en", language: "en" }),

@@ -169,6 +169,50 @@ function escapeHtml(s: string): string {
 
 let hideTimer: number | null = null;
 
+const LOADING_CSS = `
+  :host { all: initial; }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif; }
+  .pill {
+    pointer-events: auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: white; color: #1f2937;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    font-size: 13px; font-weight: 500;
+    opacity: 0.95;
+  }
+  .spinner {
+    width: 12px; height: 12px;
+    border: 2px solid #d1d5db;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: lp-spin 0.8s linear infinite;
+  }
+  @keyframes lp-spin { to { transform: rotate(360deg); } }
+  @media (prefers-color-scheme: dark) {
+    .pill { background: #1f2937; color: #e5e7eb; border-color: #4b5563; }
+    .spinner { border-color: #4b5563; border-top-color: #60a5fa; }
+  }
+`;
+
+/**
+ * Render a neutral "Analyzing…" pill. The content script calls this 800 ms
+ * after dispatching classifyPage so users on heavy pages (longer LLM run)
+ * see *something* happening instead of an empty corner and a tempting F5.
+ */
+export function renderProgressBadge(): void {
+  const { root } = ensureHost();
+  root.innerHTML = `
+    <style>${LOADING_CSS}</style>
+    <div class="pill" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>LocalPhish · Analyzing…</span>
+    </div>
+  `;
+}
+
 export function renderBadge(result: ClassifyResult): void {
   // SAFE pages don't get a badge — too noisy. Allow-list hits, content-less
   // pages, and chrome:// derived results fall into this bucket.
