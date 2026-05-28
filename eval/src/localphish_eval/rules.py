@@ -68,6 +68,9 @@ W_SEED_PHRASE = 45
 W_CROSS_STRAIT = 25
 W_CROSS_STRAIT_STRONG = 35
 
+# Anti-debug (oncontextmenu / F12 / DevTools-detection patterns)
+W_ANTI_DEBUG = 5
+
 # Verdict thresholds (mirror cascade.ts)
 DANGER_FLOOR = 85
 SAFE_CEILING = 15
@@ -92,6 +95,7 @@ class RuleData:
     brand_labels_by_canonical: list[Brand] = field(default_factory=list)
     brand_alias_index: dict[str, Brand] = field(default_factory=dict)
     tld_table: dict[str, tuple[int, set[str]]] = field(default_factory=dict)  # tier → (weight, tlds)
+    idp_allowlist: set[str] = field(default_factory=set)
 
 
 def load_rule_data(data_dir: Path) -> RuleData:
@@ -99,6 +103,12 @@ def load_rule_data(data_dir: Path) -> RuleData:
     tranco = json.loads((data_dir / "tranco-sample.json").read_text(encoding="utf-8"))
     brands_raw = json.loads((data_dir / "brand-list.json").read_text(encoding="utf-8"))
     tlds_raw = json.loads((data_dir / "suspicious-tlds.json").read_text(encoding="utf-8"))
+    idp_path = data_dir / "known-idp-allowlist.json"
+    idp_raw = (
+        json.loads(idp_path.read_text(encoding="utf-8"))
+        if idp_path.exists()
+        else {"etld1s": []}
+    )
 
     brands: list[Brand] = []
     canonical: set[str] = set()
@@ -129,7 +139,8 @@ def load_rule_data(data_dir: Path) -> RuleData:
         brands=brands,
         brand_canonical_domains=canonical,
         brand_alias_index=alias_idx,
-        tld_table=tld_table
+        tld_table=tld_table,
+        idp_allowlist={d.lower() for d in idp_raw.get("etld1s", [])}
     )
 
 

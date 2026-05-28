@@ -74,6 +74,50 @@ function isInteractive(el: Element): boolean {
   return el.querySelector("a[href], button, form, input") !== null;
 }
 
+// ---- Anti-debug heuristics -----------------------------------------------
+
+const ANTI_DEBUG_SCRIPT_PATTERNS = [
+  /\bkeyCode\s*===?\s*123\b/,         // F12
+  /\be\.key(?:Code)?\s*===?\s*['"]?F12['"]?/,
+  /\bctrlKey[^;]*shiftKey[^;]*(73|74)\b/,  // Ctrl+Shift+I/J — DevTools shortcuts
+  /\bdebugger\s*;[\s\S]{0,80}\bsetInterval/,  // common DevTools-defeating pattern
+  /window\.outerHeight\s*-\s*window\.innerHeight\s*>\s*\d{2,3}/, // DevTools detection
+  /\bdisableContextMenu\b/i,
+  /\bnoDevTools?\b/i
+];
+
+const BLOCKING_ATTR_NAMES = ["oncontextmenu", "onkeydown", "onkeyup", "onkeypress"];
+
+function detectAntiDebug(): boolean {
+  // Inline attributes on common roots — phishing kits often slap these on <body>.
+  const roots: (HTMLElement | null)[] = [document.body, document.documentElement];
+  for (const root of roots) {
+    if (!root) continue;
+    for (const attr of BLOCKING_ATTR_NAMES) {
+      const v = root.getAttribute(attr);
+      if (!v) continue;
+      // "return false" is the giveaway. Pure innocuous handlers (e.g. analytics)
+      // don't typically return false.
+      if (/return\s+false/i.test(v) || /preventDefault\s*\(/.test(v)) {
+        return true;
+      }
+    }
+  }
+
+  // Inline scripts containing DevTools-defeating patterns.
+  // Bounded scan: at most 30 inline scripts, at most 4 KB each.
+  const inlineScripts = Array.from(document.querySelectorAll<HTMLScriptElement>("script:not([src])")).slice(0, 30);
+  for (const s of inlineScripts) {
+    const text = (s.textContent ?? "").slice(0, 4096);
+    if (!text) continue;
+    for (const pat of ANTI_DEBUG_SCRIPT_PATTERNS) {
+      if (pat.test(text)) return true;
+    }
+  }
+
+  return false;
+}
+
 function isTinyOffscreenInteractive(el: HTMLElement): boolean {
   const cs = getComputedStyle(el);
   // 0 opacity but rendered — classic clickjacking layer.
@@ -154,6 +198,12 @@ export function extractFeatures(): PageFeatures {
     }
   }
 
+  // -- Anti-debug / right-click block patterns -----------------------------
+  // We can only see what's in the parsed HTML from the ISOLATED world; the
+  // page's MAIN-world JS overrides are invisible to us. So we look for the
+  // inline attribute + script-text patterns common in cheap phishing kits.
+  const hasAntiDebug = detectAntiDebug();
+
   return {
     url,
     title,
@@ -167,6 +217,7 @@ export function extractFeatures(): PageFeatures {
     externalScriptUrls,
     hiddenIframeCount,
     tinyElementCount,
+    hasAntiDebug,
     etld1: ""
   };
 }

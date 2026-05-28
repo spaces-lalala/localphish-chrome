@@ -46,7 +46,7 @@ def cascade_score(url: str, html: str, data) -> tuple[int, list[Signal]]:
     sigs: list[Signal] = list(s1["signals"])
     if s1["shortCircuit"]:
         return s1["rawScore"], sigs
-    s2 = analyze_dom(html, url)
+    s2 = analyze_dom(html, url, data)
     sigs.extend(s2)
     total = min(100, s1["rawScore"] + sum(s.weight for s in s2))
     return total, sigs

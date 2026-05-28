@@ -3,8 +3,8 @@
   "n_rows": 1000,
   "n_phish": 453,
   "n_benign": 547,
-  "elapsed_seconds": 2.92,
-  "rows_per_second": 342.3,
+  "elapsed_seconds": 3.74,
+  "rows_per_second": 267.5,
   "primary_threshold": 50,
   "primary_metrics": {
     "tp": 0,
@@ -20,15 +20,15 @@
   "threshold_sweep": [
     {
       "threshold": 5,
-      "tp": 156,
+      "tp": 159,
       "fp": 78,
-      "fn": 297,
+      "fn": 294,
       "tn": 469,
-      "precision": 0.6666666666666666,
-      "recall": 0.3443708609271523,
-      "f1": 0.45414847161572053,
+      "precision": 0.6708860759493671,
+      "recall": 0.3509933774834437,
+      "f1": 0.4608695652173913,
       "fpr": 0.1425959780621572,
-      "accuracy": 0.625
+      "accuracy": 0.628
     },
     {
       "threshold": 10,
@@ -313,6 +313,13 @@
     },
     {
       "signal": "url.many_subdomains",
+      "fires_total": 3,
+      "fires_on_phish": 3,
+      "fires_on_benign": 0,
+      "phish_precision": 1.0
+    },
+    {
+      "signal": "dom.anti_debug",
       "fires_total": 3,
       "fires_on_phish": 3,
       "fires_on_benign": 0,

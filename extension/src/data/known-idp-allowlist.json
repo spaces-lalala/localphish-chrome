@@ -1,0 +1,59 @@
+{
+  "_comment": "Known Identity Providers (IDPs) that legitimately receive cross-eTLD+1 form POSTs during OAuth / SSO / SAML flows. When a page's form action eTLD+1 matches one of these, the cross-eTLD+1 credential signals (dom.password_cross_etld1_post / otp_cross_etld1_post / card_cross_etld1_post) are suppressed — without this list, every legitimate 'Sign in with Google / Microsoft / Apple' flow would falsely score as credential_harvest.",
+  "_schema": { "etld1s": ["eTLD+1 strings, lowercased; matches against the form-action eTLD+1, not the page's"] },
+  "etld1s": [
+
+    "google.com",
+    "googleusercontent.com",
+    "googleapis.com",
+
+    "microsoftonline.com",
+    "microsoft.com",
+    "live.com",
+    "office.com",
+    "office365.com",
+    "outlook.com",
+
+    "apple.com",
+    "icloud.com",
+
+    "facebook.com",
+    "fb.com",
+
+    "github.com",
+    "githubusercontent.com",
+
+    "linkedin.com",
+
+    "x.com",
+    "twitter.com",
+    "twimg.com",
+
+    "yahoo.com",
+    "yahoo.com.tw",
+
+    "auth0.com",
+    "okta.com",
+    "oktapreview.com",
+    "onelogin.com",
+    "duosecurity.com",
+    "pingidentity.com",
+    "salesforce.com",
+
+    "amazoncognito.com",
+    "amazon.com",
+
+    "firebaseapp.com",
+    "supabase.co",
+    "clerk.dev",
+
+    "line.me",
+    "discord.com",
+    "slack.com",
+
+    "fido.gov.tw",
+    "tw-rd.org.tw",
+    "tax.nat.gov.tw",
+    "gov.tw"
+  ]
+}

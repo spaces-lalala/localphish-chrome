@@ -7,6 +7,8 @@ import { getDomain } from "tldts";
 import type { PageFeatures, Signal, StageId, Verdict } from "@/types";
 import { crossStraitLanguageSignals } from "./cross-strait-language";
 
+import idpAllowlistRaw from "@/data/known-idp-allowlist.json";
+
 const W_PASSWORD_INSECURE = 25;        // password field served over http://
 const W_PASSWORD_CROSS_ETLD1 = 35;     // password posts to a different eTLD+1
 const W_OTP_CROSS_ETLD1 = 25;          // OTP posts to a different eTLD+1
@@ -18,6 +20,13 @@ const W_HIDDEN_IFRAME_CAP = 20;
 const W_TINY_ELEMENT = 4;              // per element, capped
 const W_TINY_ELEMENT_CAP = 16;
 const W_MANY_FOREIGN_SCRIPTS = 8;      // >5 distinct foreign eTLD+1s in scripts
+const W_ANTI_DEBUG = 5;                // anti-debug / right-click block — soft signal
+
+// Pre-compiled known-IDP set used to suppress cross-eTLD+1 form-action signals
+// when the action actually points at a legitimate OAuth / SSO target.
+const IDP_ALLOWLIST: ReadonlySet<string> = new Set(
+  (idpAllowlistRaw as { etld1s: string[] }).etld1s.map((s) => s.toLowerCase())
+);
 
 export interface Stage2Result {
   rawScore: number;
@@ -53,13 +62,33 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       return null;
     }
   });
-  const hasCrossEtld1FormAction =
+  // A cross-eTLD+1 form action that lands on a known IDP (accounts.google.com,
+  // login.microsoftonline.com, appleid.apple.com, …) is the OAuth / SSO happy
+  // path, not credential harvest. Filter those out before deciding whether
+  // the page is actually posting credentials off-site.
+  const suspiciousCrossActions = formActionEtld1s.filter(
+    (d) => d != null && d !== pageEtld1 && !IDP_ALLOWLIST.has(d)
+  );
+  const allCrossActionsAreIdp =
     pageEtld1 != null &&
-    formActionEtld1s.some((d) => d != null && d !== pageEtld1);
+    formActionEtld1s.some((d) => d != null && d !== pageEtld1) &&
+    suspiciousCrossActions.length === 0;
 
-  const offendingActionEtld1 = pageEtld1
-    ? formActionEtld1s.find((d) => d != null && d !== pageEtld1) ?? null
+  const hasCrossEtld1FormAction =
+    pageEtld1 != null && suspiciousCrossActions.length > 0;
+
+  const offendingActionEtld1 = hasCrossEtld1FormAction
+    ? suspiciousCrossActions[0]
     : null;
+
+  if (allCrossActionsAreIdp) {
+    signals.push({
+      id: "dom.oauth_idp_allowlisted",
+      stage: "stage2",
+      weight: 0,
+      detail: "cross-eTLD+1 form actions all target known OAuth/SSO IDPs — not flagging"
+    });
+  }
 
   // ---- Sensitive fields posted cross-eTLD+1 ------------------------------
   if (hasCrossEtld1FormAction) {
@@ -153,6 +182,20 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
         detail: `loads scripts from ${foreignEtld1s.size} distinct foreign eTLD+1s`
       });
     }
+  }
+
+  // ---- Anti-debug / right-click block patterns ---------------------------
+  // Soft signal: many legitimate sites block right-click for image protection,
+  // so we never flag it on its own. The cascade picks it up combined with
+  // credential-harvest signals (e.g. password form + right-click blocked +
+  // mainland Chinese terms = classic phishing kit fingerprint).
+  if (features.hasAntiDebug) {
+    signals.push({
+      id: "dom.anti_debug",
+      stage: "stage2",
+      weight: W_ANTI_DEBUG,
+      detail: "page disables right-click / F12 / DevTools — common phishing-kit anti-inspection"
+    });
   }
 
   // ---- Cross-strait (繁/簡 中文) terminology anomaly ----------------------

@@ -43,6 +43,12 @@ export interface PageFeatures {
   hiddenIframeCount: number;
   tinyElementCount: number;
 
+  /** Inline anti-debug / right-click-block / F12-block patterns detected on
+   *  the page. Soft signal — many legitimate sites also disable right-click
+   *  for image protection — but combined with credential-harvest signals it
+   *  helps separate "real phishing kit" from "legit-but-paranoid site". */
+  hasAntiDebug: boolean;
+
   // For backwards compatibility with popup-initiated URL-only classifies.
   etld1: string;
 }
@@ -130,6 +136,7 @@ export function emptyFeatures(url: string, title = ""): PageFeatures {
     externalScriptUrls: [],
     hiddenIframeCount: 0,
     tinyElementCount: 0,
+    hasAntiDebug: false,
     etld1: ""
   };
 }

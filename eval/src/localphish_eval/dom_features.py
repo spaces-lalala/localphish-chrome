@@ -14,7 +14,9 @@ from bs4 import BeautifulSoup
 import tldextract
 
 from .rules import (
+    RuleData,
     Signal,
+    W_ANTI_DEBUG,
     W_CARD_AND_PASSWORD,
     W_CARD_CROSS_ETLD1,
     W_CROSS_STRAIT,
@@ -24,6 +26,42 @@ from .rules import (
     W_PASSWORD_NO_TLS,
     W_SEED_PHRASE,
 )
+
+
+_ANTI_DEBUG_SCRIPT_PATTERNS = [
+    re.compile(r"\bkeyCode\s*===?\s*123\b"),
+    re.compile(r"\be\.key(?:Code)?\s*===?\s*['\"]?F12['\"]?"),
+    re.compile(r"\bctrlKey[^;]*shiftKey[^;]*(?:73|74)\b"),
+    re.compile(r"\bdebugger\s*;[\s\S]{0,80}\bsetInterval"),
+    re.compile(r"window\.outerHeight\s*-\s*window\.innerHeight\s*>\s*\d{2,3}"),
+    re.compile(r"\bdisableContextMenu\b", re.IGNORECASE),
+    re.compile(r"\bnoDevTools?\b", re.IGNORECASE),
+]
+_BLOCKING_ATTRS = ("oncontextmenu", "onkeydown", "onkeyup", "onkeypress")
+
+
+def _detect_anti_debug(soup) -> bool:
+    """Port of dom-extract.ts detectAntiDebug()."""
+    for tag_name in ("body", "html"):
+        tag = soup.find(tag_name)
+        if not tag:
+            continue
+        for attr in _BLOCKING_ATTRS:
+            v = tag.get(attr) or ""
+            if not v:
+                continue
+            if re.search(r"return\s+false", v, re.IGNORECASE):
+                return True
+            if "preventDefault(" in v:
+                return True
+    # Inline <script> blocks
+    for s in soup.find_all("script", src=False)[:30]:
+        text = (s.string or s.get_text() or "")[:4096]
+        if not text:
+            continue
+        if any(p.search(text) for p in _ANTI_DEBUG_SCRIPT_PATTERNS):
+            return True
+    return False
 
 
 _CARD_HINTS = (
@@ -84,8 +122,13 @@ _TW_INSTITUTION_HINTS = (
 )
 
 
-def analyze_dom(html: str, page_url: str) -> list[Signal]:
-    """Parse a (possibly truncated) HTML excerpt and emit Stage 2 signals."""
+def analyze_dom(html: str, page_url: str, data: RuleData | None = None) -> list[Signal]:
+    """Parse a (possibly truncated) HTML excerpt and emit Stage 2 signals.
+
+    `data` is optional only for backwards compatibility with the first Tier A
+    run — callers should pass it so the IDP allowlist filters out legitimate
+    OAuth/SSO cross-eTLD+1 form actions.
+    """
     out: list[Signal] = []
     if not html:
         return out
@@ -135,9 +178,24 @@ def analyze_dom(html: str, page_url: str) -> list[Signal]:
             action_etld1s.append(d)
         except Exception:
             action_etld1s.append(None)
-    cross = page_etld1 is not None and any(
-        d is not None and d != page_etld1 for d in action_etld1s
+
+    # Filter out known IDPs — OAuth/SSO targets like accounts.google.com,
+    # login.microsoftonline.com etc. are legitimate cross-eTLD+1 destinations.
+    idp_allow = data.idp_allowlist if data else set()
+    suspicious_cross = [
+        d for d in action_etld1s
+        if d is not None and d != page_etld1 and d not in idp_allow
+    ]
+    all_cross_idp = (
+        page_etld1 is not None
+        and any(d is not None and d != page_etld1 for d in action_etld1s)
+        and not suspicious_cross
     )
+    cross = page_etld1 is not None and bool(suspicious_cross)
+
+    if all_cross_idp:
+        out.append(Signal("dom.oauth_idp_allowlisted", "stage2", 0,
+                          "cross-eTLD+1 form actions all target known OAuth/SSO IDPs — not flagging"))
 
     if cross:
         if has_password:
@@ -153,6 +211,10 @@ def analyze_dom(html: str, page_url: str) -> list[Signal]:
     if has_card and has_password:
         out.append(Signal("dom.card_and_password", "stage2", W_CARD_AND_PASSWORD,
                           "card + password collected together"))
+
+    if _detect_anti_debug(soup):
+        out.append(Signal("dom.anti_debug", "stage2", W_ANTI_DEBUG,
+                          "page disables right-click / F12 / DevTools — common phishing-kit anti-inspection"))
 
     if seed_phrase:
         out.append(Signal("dom.seed_phrase_grid", "stage2", W_SEED_PHRASE,
