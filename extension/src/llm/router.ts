@@ -13,9 +13,9 @@ import type { LLMBackend, Stage3Input, Stage3Output } from "@/types";
 import type { LLMBackendImpl } from "./backend";
 import { NanoBackend } from "./nano";
 import {
-  buildNanoUserPrompt,
-  buildRetryPrompt
-} from "@/prompts/phishing_v1_nano";
+  buildTwNanoUserPrompt,
+  buildTwNanoRetryPrompt
+} from "@/prompts/phishing_v2_tw_nano";
 import { parseStage3Output } from "@/prompts/schema";
 
 export type Profile = "auto" | "pro" | "lite";
@@ -78,7 +78,7 @@ export class LLMRouter {
       };
     }
 
-    const userPrompt = buildNanoUserPrompt(input);
+    const userPrompt = buildTwNanoUserPrompt(input);
 
     let raw: string;
     try {
@@ -99,7 +99,7 @@ export class LLMRouter {
 
     // Retry once with a corrective system message in-band.
     try {
-      const retryRaw = await backend.run(buildRetryPrompt(raw));
+      const retryRaw = await backend.run(buildTwNanoRetryPrompt(raw));
       parsed = parseStage3Output(retryRaw);
       if (parsed) {
         return { result: parsed, backend: backend.id, latencyMs: performance.now() - t0 };

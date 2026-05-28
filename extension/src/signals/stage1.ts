@@ -16,6 +16,7 @@ import { urlFeatureSignals } from "./url-features";
 import { homographSignals } from "./homograph";
 import { typosquatSignals, buildBrandIndex, type Brand } from "./typosquat";
 import { compileTldTable, suspiciousTldSignals, type TldTable } from "./suspicious-tld";
+import { fakeGovTwSignals } from "./fake-gov-tw";
 import { AllowList } from "./allowlist";
 
 // ---- Module-level singletons (built once, reused across every page) ------
@@ -108,6 +109,7 @@ export function runStage1(rawUrl: string): Stage1Result {
   signals.push(...homographSignals(parsed, BRAND_DOMAIN_LABELS));
   signals.push(...typosquatSignals(parsed, BRAND_INDEX));
   signals.push(...suspiciousTldSignals(parsed, TLD_TABLE));
+  signals.push(...fakeGovTwSignals(parsed));
 
   const rawScore = Math.min(100, signals.reduce((s, sig) => s + sig.weight, 0));
 

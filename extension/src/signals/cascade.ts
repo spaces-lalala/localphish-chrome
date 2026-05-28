@@ -79,12 +79,13 @@ export async function runCascade(
 
     if (r.result) {
       stagesRan.push("stage3");
+      const categoryStr = r.result.category.join("+");
       // LLM contributes one informational signal per reason; weight=0 because
       // we use MAX(rules, llm) for the final score (LLM can escalate but not
       // de-escalate).
       for (const reason of r.result.reasons) {
         signals.push({
-          id: `llm.${r.result.category}`,
+          id: `llm.${r.result.category[0] ?? "other"}`,
           stage: "stage3",
           weight: 0,
           detail: reason
@@ -96,7 +97,7 @@ export async function runCascade(
         id: "llm.score",
         stage: "stage3",
         weight: r.result.riskScore,
-        detail: `LLM (${backend}) risk_score=${r.result.riskScore}, verdict=${r.result.verdict}, category=${r.result.category}`
+        detail: `LLM (${backend}) risk_score=${r.result.riskScore}, verdict=${r.result.verdict}, category=${categoryStr}`
       });
       total = Math.max(total, r.result.riskScore);
     } else if (r.error) {

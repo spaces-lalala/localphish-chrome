@@ -10,7 +10,7 @@
 // must NEVER crash because Nano isn't installed.
 
 import type { LLMBackendImpl, ProbeResult, LLMRunOptions } from "./backend";
-import { buildNanoSystemPrompt } from "@/prompts/phishing_v1_nano";
+import { buildTwNanoSystemPrompt } from "@/prompts/phishing_v2_tw_nano";
 
 // Loose duck-typed shapes — the API is unstable enough that we can't depend on
 // a single set of TS declarations. Each surface is detected at runtime.
@@ -148,7 +148,7 @@ export class NanoBackend implements LLMBackendImpl {
 
   private async createSession(): Promise<NanoSessionModern> {
     if (!this.api) throw new Error("api missing");
-    const sys = buildNanoSystemPrompt();
+    const sys = buildTwNanoSystemPrompt();
 
     // The prompt and our expected JSON output are both English; declare so
     // explicitly. Chrome ≥ M138 requires this — the model errors out otherwise.

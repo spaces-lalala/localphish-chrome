@@ -5,11 +5,18 @@ import { z } from "zod";
 
 import type { Stage3Output } from "@/types";
 
+// Accept both forms: v1 uses string, v2 (Taiwan-localized) uses string[].
+// We normalize to string[] downstream so callers don't care which prompt fired.
+const CategoryField = z.union([
+  z.string().min(1).max(40).transform((s) => [s]),
+  z.array(z.string().min(1).max(40)).min(1).max(4)
+]);
+
 export const Stage3OutputSchema = z.object({
   risk_score: z.number().int().min(0).max(100),
   verdict: z.enum(["safe", "caution", "suspicious", "dangerous"]),
-  category: z.string().min(1).max(40),
-  reasons: z.array(z.string().min(1).max(220)).max(6),
+  category: CategoryField,
+  reasons: z.array(z.string().min(1).max(220)).max(8),
   need_visual: z.boolean().optional().default(false)
 });
 

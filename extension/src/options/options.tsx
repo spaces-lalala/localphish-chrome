@@ -68,6 +68,26 @@ const PRESETS: Preset[] = [
     label: "Legit TW bank (clean)",
     url: "https://www.cathaybk.com.tw/personal/online-banking",
     expected: "SAFE — allow-list hit"
+  },
+  {
+    label: "TW: 偽 gov.tw 子網域",
+    url: "https://etax.gov.tw.refund-2026.tax-payment.xyz/login",
+    expected: "DANGEROUS — gov.tw substring in hostname but eTLD+1 isn't .gov.tw + high-risk TLD"
+  },
+  {
+    label: "TW: gov-tw 連字變體",
+    url: "https://www.gov-tw.com/notice",
+    expected: "DANGEROUS — domain label 'gov-tw' mimics .gov.tw"
+  },
+  {
+    label: "TW: 假冒中華郵政 typosquat",
+    url: "https://chunghwapost-tw.fake-claim.tk/parcel/customs",
+    expected: "SUSPICIOUS+ — subdomain brand abuse + high-risk TLD"
+  },
+  {
+    label: "TW: ETC 催繳 path-brand",
+    url: "https://fast-toll-overdue.click/etc/fetc-pay",
+    expected: "CAUTION — high-risk TLD + path mentions etc/fetc"
   }
 ];
 

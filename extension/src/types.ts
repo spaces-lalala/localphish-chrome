@@ -72,7 +72,9 @@ export interface Stage3Input {
 export interface Stage3Output {
   riskScore: number;
   verdict: Verdict;
-  category: string;
+  /** Always an array. Prompt v1 returns one element; prompt v2 (台灣本土化) may
+   *  return multiple (e.g. ["brand_impersonation", "fake_government"]). */
+  category: string[];
   reasons: string[];
   needVisual: boolean;
 }

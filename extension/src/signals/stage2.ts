@@ -5,6 +5,7 @@
 import { getDomain } from "tldts";
 
 import type { PageFeatures, Signal, StageId, Verdict } from "@/types";
+import { crossStraitLanguageSignals } from "./cross-strait-language";
 
 const W_PASSWORD_INSECURE = 25;        // password field served over http://
 const W_PASSWORD_CROSS_ETLD1 = 35;     // password posts to a different eTLD+1
@@ -153,6 +154,13 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       });
     }
   }
+
+  // ---- Cross-strait (繁/簡 中文) terminology anomaly ----------------------
+  // Pages that claim to be a Taiwan institution but sprinkle mainland Chinese
+  // terms ("短信、激活、信息、賬號") are a fingerprint of phishing kits
+  // localized for Taiwan but produced upstream. Gated on TW-institution claim
+  // or .tw hostname to avoid false-positives on legitimate mainland sites.
+  signals.push(...crossStraitLanguageSignals(features, pageEtld1));
 
   const rawScore = signals.reduce((s, sig) => s + sig.weight, 0);
   return {
