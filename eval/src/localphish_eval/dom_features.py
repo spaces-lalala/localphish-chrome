@@ -1,0 +1,175 @@
+"""Python port of the extension's Stage 2 DOM-feature scoring.
+
+Reads an HTML excerpt with BeautifulSoup and emits the same Signal[] shape
+as the extension's content script + SW combined. Weights mirror
+extension/src/signals/stage2.ts so Tier A is a faithful rule-layer baseline.
+"""
+
+from __future__ import annotations
+
+import re
+from collections import Counter
+
+from bs4 import BeautifulSoup
+import tldextract
+
+from .rules import (
+    Signal,
+    W_CARD_AND_PASSWORD,
+    W_CARD_CROSS_ETLD1,
+    W_CROSS_STRAIT,
+    W_CROSS_STRAIT_STRONG,
+    W_OTP_CROSS_ETLD1,
+    W_PASSWORD_CROSS_ETLD1,
+    W_PASSWORD_NO_TLS,
+    W_SEED_PHRASE,
+)
+
+
+_CARD_HINTS = (
+    "card", "cardnumber", "card-number", "creditcard", "cc-number", "ccnumber",
+    "cvv", "cvc", "csc", "securitycode", "security-code"
+)
+
+
+def _input_is_card(inp) -> bool:
+    ac = (inp.get("autocomplete") or "").lower()
+    if "cc-number" in ac or ac in ("cc-csc", "cc-exp"):
+        return True
+    name = (inp.get("name") or "").lower().replace("_", "-").replace(" ", "-")
+    if any(h in name for h in _CARD_HINTS):
+        return True
+    placeholder = (inp.get("placeholder") or "").lower()
+    if re.search(r"\bcvv\b|\bcvc\b|card number|信用卡|卡號", placeholder):
+        return True
+    return False
+
+
+def _input_is_otp(inp) -> bool:
+    ac = (inp.get("autocomplete") or "").lower()
+    if "one-time-code" in ac:
+        return True
+    name = (inp.get("name") or "").lower()
+    if re.match(r"^(otp|otpcode|otp-code|one[-_]?time|2fa|tfa|verifycode|verification[-_]?code)$", name):
+        return True
+    if re.search(r"(^|[-_])otp([-_]|$)", name):
+        return True
+    return False
+
+
+def _form_has_seed_phrase_grid(form) -> bool:
+    pwd = form.find("input", {"type": "password"})
+    if not pwd:
+        return False
+    texts = form.find_all("input", {"type": ["text", None]})
+    if len(texts) < 8:
+        return False
+    roots: Counter[str] = Counter()
+    for t in texts:
+        nm = (t.get("name") or t.get("placeholder") or "").lower()
+        root = re.sub(r"\d+$", "", nm).strip()
+        if root:
+            roots[root] += 1
+    return any(c >= 8 for c in roots.values())
+
+
+_MAINLAND_TERMS = ("短信", "激活", "信息", "賬號", "視頻", "屏幕", "軟件", "默認", "客戶端", "網絡", "服務器")
+_TW_INSTITUTION_HINTS = (
+    "政府", "衛福部", "健保署", "健保卡", "國稅局", "財政部", "內政部", "勞動部",
+    "經濟部", "監理服務網", "監理站", "戶政事務所", "警政署", "165",
+    "中華郵政", "中華電信", "台灣大哥大", "遠傳", "悠遊卡", "悠遊付",
+    "遠通電收", "ETC", "蝦皮", "momo購物", "PChome",
+    "國泰世華", "中國信託", "中信銀行", "玉山銀行", "兆豐", "第一銀行",
+    "台新銀行", "富邦銀行", "合作金庫", "台灣銀行"
+)
+
+
+def analyze_dom(html: str, page_url: str) -> list[Signal]:
+    """Parse a (possibly truncated) HTML excerpt and emit Stage 2 signals."""
+    out: list[Signal] = []
+    if not html:
+        return out
+
+    # BS4 is tolerant of half-broken HTML which excerpts often are.
+    soup = BeautifulSoup(html, "lxml")
+
+    # Page-level
+    try:
+        from urllib.parse import urlparse as _urlparse
+        page_proto = (_urlparse(page_url).scheme + ":") if page_url else ""
+        page_ext = tldextract.extract(_urlparse(page_url).hostname or "")
+        page_etld1 = (
+            f"{page_ext.domain}.{page_ext.suffix}".lower()
+            if page_ext.domain and page_ext.suffix else None
+        )
+    except Exception:
+        page_proto = ""
+        page_etld1 = None
+
+    visible_text = soup.get_text(" ", strip=True)
+    visible_text = re.sub(r"\s+", " ", visible_text)[:2000]
+
+    inputs = soup.find_all("input")
+    has_password = any(i.get("type") == "password" for i in inputs)
+    has_otp = any(_input_is_otp(i) for i in inputs)
+    has_card = any(_input_is_card(i) for i in inputs)
+
+    forms = soup.find_all("form")
+    form_actions = [(f.get("action") or "") for f in forms if f.get("action")]
+    seed_phrase = any(_form_has_seed_phrase_grid(f) for f in forms)
+
+    # ---- Signals -----------------------------------------------------------
+    if has_password and page_proto == "http:":
+        out.append(Signal("dom.password_no_tls", "stage2", W_PASSWORD_NO_TLS,
+                          "password collected over plain http://"))
+
+    # Cross-eTLD+1 form action checks
+    action_etld1s: list[str | None] = []
+    for action in form_actions:
+        try:
+            from urllib.parse import urljoin, urlparse as _urlparse
+            abs_url = urljoin(page_url, action)
+            host = _urlparse(abs_url).hostname or ""
+            ext = tldextract.extract(host)
+            d = f"{ext.domain}.{ext.suffix}".lower() if ext.domain and ext.suffix else None
+            action_etld1s.append(d)
+        except Exception:
+            action_etld1s.append(None)
+    cross = page_etld1 is not None and any(
+        d is not None and d != page_etld1 for d in action_etld1s
+    )
+
+    if cross:
+        if has_password:
+            out.append(Signal("dom.password_cross_etld1_post", "stage2", W_PASSWORD_CROSS_ETLD1,
+                              "password posts cross-eTLD+1"))
+        if has_otp:
+            out.append(Signal("dom.otp_cross_etld1_post", "stage2", W_OTP_CROSS_ETLD1,
+                              "OTP posts cross-eTLD+1"))
+        if has_card:
+            out.append(Signal("dom.card_cross_etld1_post", "stage2", W_CARD_CROSS_ETLD1,
+                              "credit-card posts cross-eTLD+1"))
+
+    if has_card and has_password:
+        out.append(Signal("dom.card_and_password", "stage2", W_CARD_AND_PASSWORD,
+                          "card + password collected together"))
+
+    if seed_phrase:
+        out.append(Signal("dom.seed_phrase_grid", "stage2", W_SEED_PHRASE,
+                          "seed-phrase grid pattern"))
+
+    # Cross-strait language anomaly (gated on TW-institution claim or .tw host)
+    claims_tw_inst = any(h in visible_text for h in _TW_INSTITUTION_HINTS)
+    on_tw_host = (page_etld1 or "").endswith(".tw") or (page_etld1 or "").endswith(".com.tw")
+    if claims_tw_inst or on_tw_host:
+        hits = [t for t in _MAINLAND_TERMS if t in visible_text]
+        if hits:
+            strong = len(set(hits)) >= 3
+            out.append(Signal(
+                "dom.cross_strait_terms_strong" if strong else "dom.cross_strait_terms",
+                "stage2",
+                W_CROSS_STRAIT_STRONG if strong else W_CROSS_STRAIT,
+                f"mainland terms detected: {','.join(hits)}"
+            ))
+
+    return out

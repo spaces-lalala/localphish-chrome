@@ -28,7 +28,7 @@ REPO = "phreshphish/phreshphish"
 SHARD = "data/test-000.parquet"  # smallest shard, ~55 MB on the wire
 HF_RESOLVE = f"https://huggingface.co/datasets/{REPO}/resolve/main/{SHARD}"
 DEFAULT_UA = "LocalPhish-Eval/0.1 (academic research; 111703009@g.nccu.edu.tw)"
-HTML_EXCERPT_CHARS = 4000
+HTML_EXCERPT_CHARS = 50_000  # earlier 4000 sat inside <head>, missed every form
 
 
 def download_shard(url: str, dest: Path) -> None:
