@@ -115,11 +115,18 @@ const BASE_CSS = `
 
 function buildContent(result: ClassifyResult): { html: string; danger: boolean } {
   const c = VERDICT_COLORS[result.verdict];
-  const top3Reasons = result.reasons.slice(0, 3);
-  const remaining = Math.max(0, result.reasons.length - top3Reasons.length);
 
-  const reasonItems = top3Reasons
-    .map((r) => `<li>${escapeHtml(r)}</li>`)
+  // Show the strongest weight-bearing signals first; informational ones
+  // (LLM reasons with weight=0, llm.unavailable, etc.) come after. Result
+  // ordering otherwise is collection order which buries cross-strait /
+  // seed-phrase signals despite their +35/+45 weight.
+  const ranked = [...result.signals]
+    .sort((a, b) => (b.weight || 0) - (a.weight || 0));
+  const topSignals = ranked.slice(0, 3);
+  const remaining = Math.max(0, result.signals.length - topSignals.length);
+
+  const reasonItems = topSignals
+    .map((s) => `<li>${escapeHtml(s.detail ?? s.id)}</li>`)
     .join("");
   const more = remaining > 0 ? `<li><em>+${remaining} more reason(s)</em></li>` : "";
 
