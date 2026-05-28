@@ -4,6 +4,7 @@
 
 import type { RpcRequest, RpcResponse } from "@/types";
 import { extractFeatures } from "./dom-extract";
+import { renderBadge, removeBadge } from "./badge";
 
 async function classify(): Promise<void> {
   const features = extractFeatures();
@@ -18,13 +19,16 @@ async function classify(): Promise<void> {
         "stages=" + res.result.stagesRan.join("+"),
         res.result.signals.map((s) => `${s.id}+${s.weight}`)
       );
+      renderBadge(res.result);
     } else if (res.type === "error") {
       console.warn("[LocalPhish] classify error:", res.message);
+      removeBadge();
     }
   } catch (err) {
     // Service worker may be evicted between calls; sendMessage rejects.
     // Don't crash the host page — the user can retry via the popup.
     console.warn("[LocalPhish] sendMessage failed:", (err as Error).message);
+    removeBadge();
   }
 }
 
