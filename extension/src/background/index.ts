@@ -101,6 +101,22 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   }
 });
 
+// SPA route changes (React/Vue/Notion/Gmail/Twitter) don't fire popstate, so
+// content scripts can't see them on their own. The webNavigation API does
+// expose pushState/replaceState as onHistoryStateUpdated. When that fires we
+// invalidate the cached verdict and ask the content script to re-extract
+// features + re-classify against the new URL.
+chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+  // frameId 0 = main frame; ignore iframes (they shouldn't drive the page verdict).
+  if (details.frameId !== 0) return;
+  tabVerdicts.delete(details.tabId);
+  void chrome.tabs
+    .sendMessage(details.tabId, { type: "spaReClassify", url: details.url })
+    .catch(() => {
+      // Tab may be on a chrome:// page or unloaded; content script absent — ignore.
+    });
+});
+
 chrome.runtime.onMessage.addListener((msg: unknown, sender, sendResponse) => {
   // Ignore messages routed to other contexts (esp. the Offscreen Document).
   if (typeof msg === "object" && msg !== null && (msg as { target?: string }).target === "offscreen") {

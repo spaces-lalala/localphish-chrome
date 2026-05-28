@@ -11,9 +11,14 @@ import type { Signal } from "@/types";
 import type { ParsedUrl } from "./parse-url";
 import { levenshtein } from "./levenshtein";
 
-const TYPOSQUAT_WEIGHT = 40;
+// Weights tuned against PhreshPhish Tier A first run (eval/results/TIER_A_FIRST_RUN.md):
+//   url.typosquat_brand precision 0.222 (2/9 true on phish) — dropped from +40 → +25
+//   url.path_brand_abuse precision 0.200 (1/5 true on phish) — dropped from +10 → +5
+//   url.subdomain_brand_abuse kept at +35 — too rare in PhreshPhish to measure,
+//     but conceptually a strong signal (and the TW fixtures rely on it).
+const TYPOSQUAT_WEIGHT = 25;
 const SUBDOMAIN_BRAND_ABUSE_WEIGHT = 35;
-const PATH_BRAND_ABUSE_WEIGHT = 10;
+const PATH_BRAND_ABUSE_WEIGHT = 5;
 
 export interface Brand {
   name: string;

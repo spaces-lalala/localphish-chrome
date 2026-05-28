@@ -46,6 +46,19 @@ async function classify(): Promise<void> {
 // Initial run on page idle (this script's run_at is document_idle).
 void classify();
 
-// SPA route changes — for sites that swap routes via History API, the SW also
-// has webNavigation.onHistoryStateUpdated to back this up.
+// SPA route changes. Two paths cover the cases:
+//   - popstate fires on browser back/forward (works without extra wiring).
+//   - pushState / replaceState does NOT fire popstate, so the SW listens to
+//     chrome.webNavigation.onHistoryStateUpdated and pushes a "spaReClassify"
+//     message into this tab, which we handle here.
 window.addEventListener("popstate", () => void classify());
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (typeof msg !== "object" || msg === null) return false;
+  if ((msg as { type?: string }).type !== "spaReClassify") return false;
+  // Defer one tick so the SPA router has time to render the new view before
+  // we extract features — otherwise we'd be reading the previous DOM.
+  setTimeout(() => void classify(), 50);
+  sendResponse({ type: "ok" });
+  return false;
+});

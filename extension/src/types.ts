@@ -86,7 +86,9 @@ export type RpcRequest =
   | { type: "classifyPage"; tabId?: number; features: PageFeatures }
   | { type: "getTabVerdict"; tabId: number }
   | { type: "getBackendStatus" }
-  | { type: "rebuildBrandDb" };
+  | { type: "rebuildBrandDb" }
+  /** SW → content-script push: SPA route changed, re-extract DOM + classify. */
+  | { type: "spaReClassify"; url: string };
 
 export type RpcResponse =
   | { type: "pong"; backend: LLMBackend }

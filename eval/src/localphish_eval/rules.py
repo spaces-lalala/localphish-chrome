@@ -40,10 +40,14 @@ W_DOUBLE_ENCODING = 12
 # form already; mixed-script detection would need a Unicode confusables table
 # we don't yet ship. Leave a stub.)
 
-# Typosquat
-W_TYPOSQUAT = 40
+# Typosquat — weights tuned against Tier A first run (TIER_A_FIRST_RUN.md).
+# url.typosquat_brand precision 0.222 → +40 → +25.
+# url.path_brand_abuse precision 0.200 → +10 → +5.
+# subdomain_brand_abuse kept at +35 (too rare on PhreshPhish to recalibrate,
+# but it's the load-bearing signal for the TW post-customs / 國稅 / ETC fixtures).
+W_TYPOSQUAT = 25
 W_SUBDOMAIN_BRAND_ABUSE = 35
-W_PATH_BRAND_ABUSE = 10
+W_PATH_BRAND_ABUSE = 5
 
 # Suspicious TLD (read from JSON table — three tiers).
 
