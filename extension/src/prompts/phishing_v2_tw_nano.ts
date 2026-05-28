@@ -20,7 +20,14 @@ CRITICAL OUTPUT RULES (these override everything else):
 - category MUST be a JSON array of strings, not a single string.
 
 EXACT FORMAT — copy this shape, replace the values, never deviate:
-{"risk_score": 92, "verdict": "dangerous", "category": ["credential_harvest", "brand_impersonation"], "reasons": ["Page impersonates Taiwan National Taxation Bureau on a non-.gov.tw domain.", "Asks for national ID, bank account, and online banking password.", "Urgency language: 24-hour deadline plus late-fee threat."], "need_visual": false}
+{"risk_score": 92, "verdict": "dangerous", "category": ["credential_harvest", "brand_impersonation"], "reasons": ["Impersonates Taiwan NTBSA on non-.gov.tw domain", "Asks for national ID + bank credentials", "24-hour deadline + late-fee threat"], "need_visual": false}
+
+OUTPUT BUDGET — Nano truncates long outputs. Stay within:
+- reasons: at most 3 items, each ≤ 80 characters
+- category: at most 3 items
+- Total JSON output ≤ 400 characters
+
+If you can't fit everything, drop later reasons and keep the strongest one first.
 
 Schema spec: {"risk_score": <int 0-100>, "verdict": "safe"|"caution"|"suspicious"|"dangerous", "category": [<one or more of "credential_harvest"|"wallet_drainer"|"brand_impersonation"|"fake_government"|"tech_support_scam"|"package_customs_scam"|"tax_refund_scam"|"etc_overdue_scam"|"benign"|"other">], "reasons": [<short English string>, ...], "need_visual": <bool>}
 
@@ -37,8 +44,7 @@ Generic rules:
 - Real bank / SaaS login on its own brand domain → "safe".
 - Generic content, search results, docs → "safe".
 
-Set need_visual=true only when text alone is inconclusive and a screenshot would clearly help.
-Keep reasons[] short (≤ 6 items, ≤ 220 chars each, ENGLISH ONLY).`;
+Set need_visual=true only when text alone is inconclusive and a screenshot would clearly help.`;
 
 const TEXT_BUDGET_CHARS = 1500;
 

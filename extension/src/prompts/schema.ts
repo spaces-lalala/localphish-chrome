@@ -50,23 +50,129 @@ export function extractJsonObject(s: string): string | null {
   return null;
 }
 
-export function parseStage3Output(raw: string): Stage3Output | null {
-  const json = extractJsonObject(raw);
-  if (!json) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(json);
-  } catch {
-    return null;
+/** Last-resort JSON repair for models that truncate their own output mid-token.
+ *  Walks from the first `{`, tracks open string/array/object state, and on
+ *  reaching the end of input closes whatever was left open. If the truncation
+ *  happened mid-element, we also drop the trailing partial element so the
+ *  closing brace lands on a valid position.
+ *
+ *  Nano under the v2 prompt sometimes emits e.g.
+ *    `{"risk_score": 95, ..., "reasons": ["A", "B`
+ *  and cuts off mid-string. The repair becomes
+ *    `{"risk_score": 95, ..., "reasons": ["A"]}`
+ *  which loses partial reason B but preserves everything before it. */
+export function repairTruncatedJson(s: string): string | null {
+  const fenceStripped = s.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "");
+  const start = fenceStripped.indexOf("{");
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  // Stack of open containers as `{` or `[`, with the byte offset of the most
+  // recent comma seen at that depth — we use it to truncate to the last
+  // complete element if we end up inside a half-written one.
+  const stack: { kind: "{" | "["; lastCommaIdx: number }[] = [];
+  let safeEnd = -1; // index of the last position known to be at the top of a balanced state
+
+  for (let i = start; i < fenceStripped.length; i++) {
+    const c = fenceStripped[i];
+    if (esc) { esc = false; continue; }
+    if (inStr) {
+      if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === "{") { stack.push({ kind: "{", lastCommaIdx: -1 }); depth++; continue; }
+    if (c === "[") { stack.push({ kind: "[", lastCommaIdx: -1 }); depth++; continue; }
+    if (c === "}") {
+      stack.pop();
+      depth--;
+      if (depth === 0) { safeEnd = i; break; }
+      continue;
+    }
+    if (c === "]") {
+      stack.pop();
+      depth--;
+      continue;
+    }
+    if (c === "," && stack.length > 0) {
+      stack[stack.length - 1].lastCommaIdx = i;
+    }
   }
-  const result = Stage3OutputSchema.safeParse(parsed);
-  if (!result.success) return null;
-  const v = result.data;
-  return {
-    riskScore: v.risk_score,
-    verdict: v.verdict,
-    category: v.category,
-    reasons: v.reasons,
-    needVisual: v.need_visual ?? false
-  };
+
+  // Already balanced — caller didn't need repair, but return it anyway.
+  if (safeEnd >= 0) return fenceStripped.slice(start, safeEnd + 1);
+  if (stack.length === 0) return null;
+
+  // Truncated. Walk from the deepest open container, trimming half-written
+  // elements back to the last comma we observed at that depth, then close.
+  let cut = fenceStripped.length;
+  // If we ended inside a string, the partial element is incomplete; back up to
+  // the most recent comma in the innermost container (if any) — otherwise back
+  // up to the container open itself, leaving an empty list.
+  if (inStr) {
+    const inner = stack[stack.length - 1];
+    cut = inner.lastCommaIdx > 0 ? inner.lastCommaIdx : findOpenOf(fenceStripped, stack, start) + 1;
+  } else {
+    // Check whether the byte right before cut looks like a half-written element
+    // (e.g. unfinished number or bare word). If we're sitting after a comma
+    // already, nothing to trim. Otherwise back up to last comma at this depth.
+    const tail = fenceStripped.slice(0, cut).trimEnd();
+    if (tail.length > 0 && tail[tail.length - 1] !== "," && tail[tail.length - 1] !== "{" && tail[tail.length - 1] !== "[") {
+      const inner = stack[stack.length - 1];
+      if (inner.lastCommaIdx > 0) cut = inner.lastCommaIdx;
+    }
+  }
+
+  let repaired = fenceStripped.slice(start, cut);
+  // Append closing tokens in stack-order (innermost first).
+  for (let i = stack.length - 1; i >= 0; i--) {
+    repaired += stack[i].kind === "{" ? "}" : "]";
+  }
+  return repaired;
+}
+
+function findOpenOf(s: string, stack: { kind: "{" | "[" }[], start: number): number {
+  // Best-effort: find index of nth-deepest open bracket — used only for the
+  // degenerate "no commas observed in container" case.
+  let depth = 0;
+  for (let i = start; i < s.length; i++) {
+    const c = s[i];
+    if (c === "{" || c === "[") {
+      if (depth === stack.length - 1) return i;
+      depth++;
+    } else if (c === "}" || c === "]") {
+      depth--;
+    }
+  }
+  return start;
+}
+
+export function parseStage3Output(raw: string): Stage3Output | null {
+  // Try the strict-balanced extractor first. If that fails (Nano truncation),
+  // fall back to the repair pass that closes dangling braces/brackets.
+  const candidates: (string | null)[] = [extractJsonObject(raw), repairTruncatedJson(raw)];
+
+  for (const json of candidates) {
+    if (!json) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      continue;
+    }
+    const result = Stage3OutputSchema.safeParse(parsed);
+    if (!result.success) continue;
+    const v = result.data;
+    return {
+      riskScore: v.risk_score,
+      verdict: v.verdict,
+      category: v.category,
+      reasons: v.reasons,
+      needVisual: v.need_visual ?? false
+    };
+  }
+  return null;
 }
