@@ -79,6 +79,48 @@ def confusion(y_true: list[int], y_pred: list[int]) -> dict:
     }
 
 
+def bootstrap_ci(
+    y_true: list[int],
+    scores: list[int],
+    threshold: int,
+    n_bootstrap: int = 1000,
+    seed: int = 42
+) -> dict:
+    """Bootstrap 95% CI for F1 / Precision / Recall / FPR at a given threshold.
+
+    We can't easily afford to re-download more PhreshPhish shards each run, so
+    we use the standard non-parametric bootstrap (sampling with replacement
+    from the existing N rows) to estimate how much each metric would move if
+    we'd drawn a slightly different N rows from the same distribution. The
+    resulting CI is a lower bound on true population variance — it doesn't
+    capture between-shard variance — but it's the right metric for reporting
+    "given this dataset, how stable are our numbers".
+    """
+    import random
+    rng = random.Random(seed)
+    n = len(y_true)
+    f1s, ps, rs, fprs = [], [], [], []
+    for _ in range(n_bootstrap):
+        idxs = [rng.randrange(n) for _ in range(n)]
+        yt = [y_true[i] for i in idxs]
+        yp = [1 if scores[i] >= threshold else 0 for i in idxs]
+        m = confusion(yt, yp)
+        f1s.append(m["f1"]); ps.append(m["precision"])
+        rs.append(m["recall"]); fprs.append(m["fpr"])
+
+    def pct(xs, p):
+        xs = sorted(xs)
+        k = int(round((p / 100) * (len(xs) - 1)))
+        return xs[k]
+
+    return {
+        "f1_ci": [pct(f1s, 2.5), pct(f1s, 97.5)],
+        "precision_ci": [pct(ps, 2.5), pct(ps, 97.5)],
+        "recall_ci": [pct(rs, 2.5), pct(rs, 97.5)],
+        "fpr_ci": [pct(fprs, 2.5), pct(fprs, 97.5)]
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path,
@@ -143,12 +185,14 @@ def main() -> int:
     y_pred = [1 if r[2] >= args.threshold else 0 for r in scored]
     main_metrics = confusion(y_true, y_pred)
 
-    # Threshold sweep
+    # Threshold sweep + bootstrap 95% CIs at each threshold.
     sweep = []
+    raw_scores = [r[2] for r in scored]
     for thr in range(5, 96, 5):
-        y_pred_t = [1 if r[2] >= thr else 0 for r in scored]
+        y_pred_t = [1 if s >= thr else 0 for s in raw_scores]
         m = confusion(y_true, y_pred_t)
-        sweep.append({"threshold": thr, **m})
+        ci = bootstrap_ci(y_true, raw_scores, thr, n_bootstrap=500)
+        sweep.append({"threshold": thr, **m, **ci})
 
     # Per-signal hit rates restricted to weight-bearing signals
     per_signal_rows = []
@@ -201,18 +245,24 @@ def main() -> int:
         tbl.add_row(k.upper(), str(main_metrics[k]))
     console.print(tbl)
 
-    sweep_tbl = Table(title="Threshold sweep")
-    sweep_tbl.add_column("threshold")
-    sweep_tbl.add_column("F1")
-    sweep_tbl.add_column("Precision")
-    sweep_tbl.add_column("Recall")
-    sweep_tbl.add_column("FPR")
+    sweep_tbl = Table(title="Threshold sweep (95 % bootstrap CI in brackets)")
+    sweep_tbl.add_column("thr")
+    sweep_tbl.add_column("F1 [CI]")
+    sweep_tbl.add_column("Precision [CI]")
+    sweep_tbl.add_column("Recall [CI]")
+    sweep_tbl.add_column("FPR [CI]")
     for row in sweep:
-        sweep_tbl.add_row(str(row["threshold"]),
-                          f"{row['f1']:.3f}",
-                          f"{row['precision']:.3f}",
-                          f"{row['recall']:.3f}",
-                          f"{row['fpr']:.3f}")
+        f1lo, f1hi = row["f1_ci"]
+        plo, phi = row["precision_ci"]
+        rlo, rhi = row["recall_ci"]
+        fprlo, fprhi = row["fpr_ci"]
+        sweep_tbl.add_row(
+            str(row["threshold"]),
+            f"{row['f1']:.3f} [{f1lo:.2f}-{f1hi:.2f}]",
+            f"{row['precision']:.3f} [{plo:.2f}-{phi:.2f}]",
+            f"{row['recall']:.3f} [{rlo:.2f}-{rhi:.2f}]",
+            f"{row['fpr']:.3f} [{fprlo:.2f}-{fprhi:.2f}]"
+        )
     console.print(sweep_tbl)
 
     sig_tbl = Table(title="Per-signal hit rates (top 20)")
