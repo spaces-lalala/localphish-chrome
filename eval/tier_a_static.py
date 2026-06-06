@@ -41,12 +41,12 @@ from localphish_eval.rules import (
 from localphish_eval.dom_features import analyze_dom
 
 
-def cascade_score(url: str, html: str, data) -> tuple[int, list[Signal]]:
+def cascade_score(url: str, html: str, data, data_dir: Path | None = None) -> tuple[int, list[Signal]]:
     s1 = run_stage1(url, data)
     sigs: list[Signal] = list(s1["signals"])
     if s1["shortCircuit"]:
         return s1["rawScore"], sigs
-    s2 = analyze_dom(html, url, data)
+    s2 = analyze_dom(html, url, data, data_dir)
     sigs.extend(s2)
     total = min(100, s1["rawScore"] + sum(s.weight for s in s2))
     return total, sigs
@@ -171,7 +171,7 @@ def main() -> int:
         url = row["url"]
         html = row.get("html_excerpt") or ""
         label = int(row["label"])
-        score, sigs = cascade_score(url, html, data)
+        score, sigs = cascade_score(url, html, data, args.data_dir)
         scored.append((url, label, score, sigs))
         for s in sigs:
             if s.weight > 0:

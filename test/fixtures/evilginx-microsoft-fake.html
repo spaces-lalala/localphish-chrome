@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mock-up of an Evilginx-style reverse-proxy phishlet landing page that
+  fronts Microsoft 365. The trick: hostname embeds the real auth FQDN as a
+  subdomain prefix so the victim's eye stops at "login.microsoftonline.com"
+  even though the eTLD+1 is the attacker's domain.
+
+  Exercise the LocalPhish detectors:
+    - url.reverse_proxy_fqdn      — hostname has "login.microsoftonline.com." as subdomain
+    - url.phishlet_endpoint       — path mimics /oauth2/v2.0/authorize on non-Microsoft host
+    - dom.favicon_brand_cdn_mismatch — favicon hot-linked from microsoft.com
+
+  Stage 2 cross-eTLD+1 form-action signals will NOT fire because the form
+  submits same-origin (a real Evilginx proxies the submission back through
+  the attacker host). That's the whole point — only Stage 1 catches this.
+  ============================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign in to your account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Hot-linked favicon from the real Microsoft asset CDN — this is the
+      tell-tale sign of a kit author who skipped re-encoding the icon.
+      brand-favicon-cdns.json maps microsoft.com -> Microsoft, so this
+      should trigger dom.favicon_brand_cdn_mismatch.
+    -->
+    <link rel="icon" href="https://www.microsoft.com/favicon.ico" />
+    <style>
+      body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f2f2f2; color: #1b1b1b; }
+      .frame { max-width: 440px; margin: 80px auto; padding: 44px; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.16); }
+      .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+      .logo-mark { width: 24px; height: 24px; display: grid; grid-template-columns: 1fr 1fr; }
+      .logo-mark > div { width: 11px; height: 11px; }
+      .logo-mark > :nth-child(1) { background: #f25022; }
+      .logo-mark > :nth-child(2) { background: #7fba00; }
+      .logo-mark > :nth-child(3) { background: #00a4ef; }
+      .logo-mark > :nth-child(4) { background: #ffb900; }
+      h1 { font-size: 24px; font-weight: 600; margin: 0 0 12px; }
+      input { width: 100%; padding: 10px; border: 0; border-bottom: 1px solid #666; font-size: 15px; box-sizing: border-box; outline: none; }
+      input:focus { border-bottom-color: #0078d4; }
+      .actions { display: flex; justify-content: flex-end; margin-top: 32px; }
+      button { background: #0078d4; color: white; border: 0; padding: 10px 20px; font-size: 14px; cursor: pointer; min-width: 108px; }
+      .small { font-size: 13px; margin-top: 16px; color: #555; }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <div class="logo">
+        <div class="logo-mark"><div></div><div></div><div></div><div></div></div>
+        <strong>Microsoft</strong>
+      </div>
+
+      <h1>Sign in</h1>
+
+      <!--
+        Form submits same-origin — that's what a reverse proxy does. The
+        attacker's server captures the credential, replays it against the
+        real Microsoft endpoint, then forwards the session cookie back.
+        This is why Stage 2 cross-eTLD+1 form-action signals are blind to
+        Evilginx: there's no cross-host POST to catch.
+      -->
+      <form action="/common/login" method="post">
+        <p><input type="email" name="loginfmt" placeholder="Email, phone, or Skype" required /></p>
+        <p><input type="password" name="passwd" placeholder="Password" required /></p>
+        <div class="actions">
+          <button type="submit">Sign in</button>
+        </div>
+      </form>
+
+      <p class="small">Can't access your account? Sign-in options</p>
+    </main>
+  </body>
+</html>

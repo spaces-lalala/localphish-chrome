@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  BENIGN fixture — mimics 國泰世華個人網銀登入頁。
+  This is a HAND-CRAFTED approximation of what a legitimate Taiwan bank
+  login page looks like: brand name, password field, OTP field, urgency-
+  free copy, and form action posts BACK TO THE SAME eTLD+1.
+
+  Tier D / E.5 should classify this SAFE. If the LLM (Qwen 0.5B) is fooled
+  into outputting risk_score ≥ 50 here, that's a real benign-FPR case for
+  the Stage 3 model.
+
+  (We rely on `url.user_allowlist_hit` / `url.tw_institutional_tld` not
+  being triggered because the synthetic URL we feed in is on `.com.tw` —
+  this exercises the LLM, not the short-circuit.)
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <title>國泰世華個人網銀 — 安全登入</title>
+    <style>
+      body { font-family: "Microsoft JhengHei", sans-serif; background: #f5f5f5; margin: 0; }
+      .header { background: #009688; color: white; padding: 16px 32px; }
+      .frame { max-width: 480px; margin: 40px auto; padding: 36px; background: white;
+               box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      .note { color: #555; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+      label { display: block; margin-top: 12px; font-size: 14px; }
+      input { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc;
+              box-sizing: border-box; font-size: 14px; }
+      button { background: #009688; color: white; padding: 12px 32px; border: 0;
+               margin-top: 20px; cursor: pointer; font-size: 14px; }
+      .footer-links { margin-top: 18px; font-size: 12px; color: #666; }
+      .footer-links a { color: #009688; margin-right: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="header"><strong>國泰世華商業銀行 Cathay United Bank</strong></div>
+    <main class="frame">
+      <h1>個人網路銀行登入</h1>
+      <p class="note">
+        為了您的帳戶安全，本行不會以電話、簡訊或電子郵件要求您提供登入密碼或
+        OTP 動態密碼。如有疑問請撥客服 (02) 8161-3838。
+      </p>
+
+      <form action="/personal/auth/login" method="post">
+        <label>身分證字號或統一編號
+          <input type="text" name="userId" autocomplete="username" required />
+        </label>
+        <label>網銀密碼
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <label>圖形驗證碼
+          <input type="text" name="captcha" autocomplete="off" required />
+        </label>
+        <button type="submit">登入</button>
+      </form>
+
+      <div class="footer-links">
+        <a href="/forgot-password">忘記密碼？</a>
+        <a href="/register">首次申請</a>
+        <a href="/security">資訊安全宣告</a>
+      </div>
+    </main>
+  </body>
+</html>

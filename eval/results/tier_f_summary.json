@@ -1,0 +1,68 @@
+{
+  "mode": "production",
+  "n_rows": 117,
+  "n_phish": 48,
+  "n_benign": 69,
+  "llm_called": 116,
+  "llm_succeeded": 116,
+  "llm_called_on_benign": 69,
+  "llm_fp_on_benign_alone": 36,
+  "rendered_rules_at_thr50": {
+    "tp": 7,
+    "fp": 0,
+    "fn": 41,
+    "tn": 69,
+    "precision": 1.0,
+    "recall": 0.14583333333333334,
+    "f1": 0.2545454545454545,
+    "fpr": 0.0,
+    "f1_ci": [
+      0.1111111111111111,
+      0.39344262295081966
+    ],
+    "recall_ci": [
+      0.058823529411764705,
+      0.24489795918367346
+    ],
+    "precision_ci": [
+      1.0,
+      1.0
+    ],
+    "fpr_ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "cascade_with_llm_at_thr50": {
+    "tp": 36,
+    "fp": 36,
+    "fn": 12,
+    "tn": 33,
+    "precision": 0.5,
+    "recall": 0.75,
+    "f1": 0.6,
+    "fpr": 0.5217391304347826,
+    "f1_ci": [
+      0.48333333333333334,
+      0.6956521739130435
+    ],
+    "recall_ci": [
+      0.6190476190476191,
+      0.8666666666666667
+    ],
+    "precision_ci": [
+      0.38666666666666666,
+      0.620253164556962
+    ],
+    "fpr_ci": [
+      0.4,
+      0.6349206349206349
+    ]
+  },
+  "benign_fp_breakdown": {
+    "n_benign": 69,
+    "llm_called_on_benign": 69,
+    "llm_FP_alone (llm_score >= 50)": 36,
+    "cascade_FP_after_max (final >= 50)": 36
+  }
+}

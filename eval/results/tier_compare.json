@@ -1,0 +1,13 @@
+{
+  "joined_rows": 48,
+  "tier_a_only": 952,
+  "tier_b_only": 69,
+  "feature_drift_counts": {
+    "bodyTextLength": 10,
+    "formCount": 3
+  },
+  "js_injected_password": 0,
+  "js_injected_form": 3,
+  "cloaking_in_static_not_rendered": 0,
+  "cloaking_in_rendered_not_static": 0
+}

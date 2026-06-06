@@ -10,15 +10,14 @@
 import type { Signal } from "@/types";
 import type { ParsedUrl } from "./parse-url";
 import { levenshtein } from "./levenshtein";
+import { weight as W } from "./weights";
 
 // Weights tuned against PhreshPhish Tier A first run (eval/results/TIER_A_FIRST_RUN.md):
 //   url.typosquat_brand precision 0.222 (2/9 true on phish) — dropped from +40 → +25
 //   url.path_brand_abuse precision 0.200 (1/5 true on phish) — dropped from +10 → +5
 //   url.subdomain_brand_abuse kept at +35 — too rare in PhreshPhish to measure,
 //     but conceptually a strong signal (and the TW fixtures rely on it).
-const TYPOSQUAT_WEIGHT = 25;
-const SUBDOMAIN_BRAND_ABUSE_WEIGHT = 35;
-const PATH_BRAND_ABUSE_WEIGHT = 5;
+// All three weights now live in extension/src/data/signal-spec.json.
 
 export interface Brand {
   name: string;
@@ -26,7 +25,7 @@ export interface Brand {
   aliases: string[];    // lowercased
 }
 
-interface BrandIndex {
+export interface BrandIndex {
   brands: Brand[];
   /** domainLabel (e.g. "paypal" from "paypal.com") for quick Levenshtein loop. */
   labels: { label: string; brand: Brand }[];
@@ -74,7 +73,7 @@ export function typosquatSignals(p: ParsedUrl, idx: BrandIndex): Signal[] {
         out.push({
           id: "url.typosquat_brand",
           stage: "stage1",
-          weight: TYPOSQUAT_WEIGHT,
+          weight: W("url.typosquat_brand"),
           detail: `domain label "${lowerLabel}" is edit-distance ${d} from brand "${brand.name}" (${brand.domain})`
         });
         break; // one strong hit is enough; further matches are likely false positives
@@ -92,7 +91,7 @@ export function typosquatSignals(p: ParsedUrl, idx: BrandIndex): Signal[] {
         out.push({
           id: "url.subdomain_brand_abuse",
           stage: "stage1",
-          weight: SUBDOMAIN_BRAND_ABUSE_WEIGHT,
+          weight: W("url.subdomain_brand_abuse"),
           detail: `subdomain contains brand "${brand.name}" but eTLD+1 is "${p.etld1}", not "${brand.domain}"`
         });
         break;
@@ -112,7 +111,7 @@ export function typosquatSignals(p: ParsedUrl, idx: BrandIndex): Signal[] {
         out.push({
           id: "url.path_brand_abuse",
           stage: "stage1",
-          weight: PATH_BRAND_ABUSE_WEIGHT,
+          weight: W("url.path_brand_abuse"),
           detail: `URL path mentions brand "${brand.name}" but eTLD+1 is "${p.etld1}"`
         });
         break;

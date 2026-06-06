@@ -13,10 +13,7 @@
 
 import type { Signal } from "@/types";
 import type { ParsedUrl } from "./parse-url";
-
-const W_GOV_TW_VARIANT_HOST = 40;     // gov.tw inside hostname but eTLD+1 isn't .gov.tw
-const W_GOV_TW_PSEUDOTLD = 35;        // "gov.tw" used as a fake TLD prefix on another eTLD
-const W_GOV_TW_HYPHEN_VARIANT = 30;   // gov-tw.* or govtw.* domain labels
+import { weight as W } from "./weights";
 
 /** Real `.gov.tw` registrations always have ≥3 labels (e.g. `npa.gov.tw`,
  *  `nhi.gov.tw`); the public suffix is the literal two-label `gov.tw`. */
@@ -41,7 +38,7 @@ export function fakeGovTwSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.gov_tw_substring_abuse",
       stage: "stage1",
-      weight: W_GOV_TW_VARIANT_HOST,
+      weight: W("url.gov_tw_substring_abuse"),
       detail: `hostname "${host}" contains "gov.tw." segment but eTLD+1 is "${p.etld1 ?? "?"}", not a real .gov.tw site`
     });
   }
@@ -53,7 +50,7 @@ export function fakeGovTwSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.gov_tw_pseudo_tld",
       stage: "stage1",
-      weight: W_GOV_TW_PSEUDOTLD,
+      weight: W("url.gov_tw_pseudo_tld"),
       detail: `eTLD+1 "${p.etld1}" uses "gov.tw" as a fake prefix on a non-Taiwan registry`
     });
   }
@@ -67,7 +64,7 @@ export function fakeGovTwSignals(p: ParsedUrl): Signal[] {
       out.push({
         id: "url.gov_tw_hyphen_variant",
         stage: "stage1",
-        weight: W_GOV_TW_HYPHEN_VARIANT,
+        weight: W("url.gov_tw_hyphen_variant"),
         detail: `domain label "${lbl}" mimics a Taiwan gov site without using the .gov.tw suffix`
       });
     }

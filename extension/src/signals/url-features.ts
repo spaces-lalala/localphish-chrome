@@ -3,15 +3,7 @@
 
 import type { Signal } from "@/types";
 import type { ParsedUrl } from "./parse-url";
-
-const NONSTANDARD_PORT_WEIGHT = 8;
-const IP_HOST_WEIGHT = 30;
-const AT_SIGN_WEIGHT = 25;
-const LONG_URL_WEIGHT = 6;
-const MANY_HYPHENS_WEIGHT = 4;
-const MANY_SUBDOMAINS_WEIGHT = 7;
-const HIGH_ENTROPY_WEIGHT = 10;
-const DOUBLE_ENCODING_WEIGHT = 12;
+import { weight as W } from "./weights";
 
 function shannonEntropy(s: string): number {
   if (!s) return 0;
@@ -34,7 +26,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.ip_as_host",
       stage: "stage1",
-      weight: IP_HOST_WEIGHT,
+      weight: W("url.ip_as_host"),
       detail: `hostname is an IP literal: ${p.hostname}`
     });
   }
@@ -47,7 +39,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.userinfo_at",
       stage: "stage1",
-      weight: AT_SIGN_WEIGHT,
+      weight: W("url.userinfo_at"),
       detail: "URL contains '@' before the host — possible deceptive userinfo"
     });
   }
@@ -57,7 +49,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.nonstandard_port",
       stage: "stage1",
-      weight: NONSTANDARD_PORT_WEIGHT,
+      weight: W("url.nonstandard_port"),
       detail: `non-standard port :${p.port}`
     });
   }
@@ -68,7 +60,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.long",
       stage: "stage1",
-      weight: LONG_URL_WEIGHT,
+      weight: W("url.long"),
       detail: `URL is ${p.href.length} chars`
     });
   }
@@ -79,7 +71,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.many_hyphens",
       stage: "stage1",
-      weight: MANY_HYPHENS_WEIGHT,
+      weight: W("url.many_hyphens"),
       detail: `${hyphens} hyphens in hostname`
     });
   }
@@ -91,7 +83,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.many_subdomains",
       stage: "stage1",
-      weight: MANY_SUBDOMAINS_WEIGHT,
+      weight: W("url.many_subdomains"),
       detail: `${subLabels} subdomain labels`
     });
   }
@@ -104,7 +96,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.high_entropy_path",
       stage: "stage1",
-      weight: HIGH_ENTROPY_WEIGHT,
+      weight: W("url.high_entropy_path"),
       detail: `path body length=${pathBody.length} entropy>${4.0}`
     });
   }
@@ -115,7 +107,7 @@ export function urlFeatureSignals(p: ParsedUrl): Signal[] {
     out.push({
       id: "url.double_encoded",
       stage: "stage1",
-      weight: DOUBLE_ENCODING_WEIGHT,
+      weight: W("url.double_encoded"),
       detail: "URL contains double percent-encoding (%25XX)"
     });
   }

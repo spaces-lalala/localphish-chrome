@@ -13,11 +13,13 @@ import type {
 
 import { runStage1 } from "./stage1";
 import { runStage2 } from "./stage2";
-
-const DANGER_FLOOR = 85;
-const SAFE_CEILING = 15;
-const STAGE3_GREY_MIN = 15; // inclusive
-const STAGE3_GREY_MAX = 84; // inclusive — Stage 1+2 ≥85 already conclusive
+import {
+  DANGER_FLOOR,
+  SAFE_CEILING,
+  SUSPICIOUS_FLOOR,
+  STAGE3_GREY_MIN,
+  STAGE3_GREY_MAX
+} from "./thresholds";
 
 export type Stage3Fn = (input: Stage3Input) => Promise<{
   result: Stage3Output | null;
@@ -129,7 +131,7 @@ function finalize({ signals, score, stagesRan, t0, backend }: FinalizeArgs): Cla
       ? "dangerous"
       : score < SAFE_CEILING
       ? "safe"
-      : score >= 50
+      : score >= SUSPICIOUS_FLOOR
       ? "suspicious"
       : "caution";
 

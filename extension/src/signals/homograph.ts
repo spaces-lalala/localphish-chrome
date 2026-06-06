@@ -7,10 +7,7 @@
 
 import type { Signal } from "@/types";
 import type { ParsedUrl } from "./parse-url";
-
-const PUNYCODE_WEIGHT = 8;             // mild — many legit IDNs exist
-const PUNYCODE_LOOKS_LIKE_BRAND_WEIGHT = 35;
-const MIXED_SCRIPT_WEIGHT = 20;
+import { weight as W } from "./weights";
 
 // Quick script bucket — enough to flag Latin/Cyrillic/Greek mixing without
 // pulling a full ICU table. We treat Latin as the baseline; anything else
@@ -66,7 +63,7 @@ export function homographSignals(p: ParsedUrl, brandDomainLabels: Set<string>): 
       out.push({
         id: "url.punycode_label",
         stage: "stage1",
-        weight: PUNYCODE_WEIGHT,
+        weight: W("url.punycode_label"),
         detail: `IDN label "${label}" decodes to "${decoded}"`
       });
 
@@ -81,7 +78,7 @@ export function homographSignals(p: ParsedUrl, brandDomainLabels: Set<string>): 
           out.push({
             id: "url.punycode_brand_lookalike",
             stage: "stage1",
-            weight: PUNYCODE_LOOKS_LIKE_BRAND_WEIGHT,
+            weight: W("url.punycode_brand_lookalike"),
             detail: `IDN label decodes to "${decoded}", visually similar to brand "${brandLabel}"`
           });
           break;
@@ -93,7 +90,7 @@ export function homographSignals(p: ParsedUrl, brandDomainLabels: Set<string>): 
       out.push({
         id: "url.mixed_script_label",
         stage: "stage1",
-        weight: MIXED_SCRIPT_WEIGHT,
+        weight: W("url.mixed_script_label"),
         detail: `label "${label}" mixes Latin with Cyrillic/Greek script`
       });
     }

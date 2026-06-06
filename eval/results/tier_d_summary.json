@@ -1,0 +1,73 @@
+{
+  "input": "D:\\Documents\\NCCUCP_D\\taica_LLM\\Final\\eval\\datasets\\golden_200.jsonl",
+  "n_rows": 117,
+  "n_phish": 48,
+  "n_benign": 69,
+  "backend": "ollama",
+  "model": "qwen2.5:0.5b",
+  "llm_fired": 18,
+  "llm_succeeded": 18,
+  "llm_failure_rate": 0.0,
+  "rules_only_at_thr50": {
+    "tp": 1,
+    "fp": 0,
+    "fn": 47,
+    "tn": 69,
+    "precision": 1.0,
+    "recall": 0.020833333333333332,
+    "f1": 0.04081632653061224,
+    "fpr": 0.0,
+    "f1_ci": [
+      0.0,
+      0.14285714285714285
+    ],
+    "recall_ci": [
+      0.0,
+      0.07692307692307693
+    ],
+    "precision_ci": [
+      0.0,
+      1.0
+    ],
+    "fpr_ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "cascade_with_llm_at_thr50": {
+    "tp": 16,
+    "fp": 0,
+    "fn": 32,
+    "tn": 69,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "fpr": 0.0,
+    "f1_ci": [
+      0.3333333333333333,
+      0.6388888888888888
+    ],
+    "recall_ci": [
+      0.2,
+      0.46938775510204084
+    ],
+    "precision_ci": [
+      1.0,
+      1.0
+    ],
+    "fpr_ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "verdict_based": {
+    "tp": 16,
+    "fp": 0,
+    "fn": 32,
+    "tn": 69,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "fpr": 0.0
+  }
+}

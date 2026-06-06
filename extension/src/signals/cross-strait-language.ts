@@ -16,9 +16,7 @@
 // official communications.
 
 import type { PageFeatures, Signal } from "@/types";
-
-const W_CROSS_STRAIT_LANGUAGE = 25;
-const W_CROSS_STRAIT_LANGUAGE_STRONG = 35; // when ≥ 3 distinct mainland terms
+import { weight as W } from "./weights";
 
 /** Mainland Chinese term → Taiwan equivalent, for evidence reporting. */
 const MAINLAND_TERMS: Record<string, string> = {
@@ -109,7 +107,7 @@ export function crossStraitLanguageSignals(
   if (hits.length === 0) return [];
 
   const strong = hits.length >= 3;
-  const weight = strong ? W_CROSS_STRAIT_LANGUAGE_STRONG : W_CROSS_STRAIT_LANGUAGE;
+  const w = strong ? W("dom.cross_strait_terms_strong") : W("dom.cross_strait_terms");
 
   const examples = hits
     .map((t) => `${t}→${MAINLAND_TERMS[t]}`)
@@ -125,7 +123,7 @@ export function crossStraitLanguageSignals(
   return [{
     id: strong ? "dom.cross_strait_terms_strong" : "dom.cross_strait_terms",
     stage: "stage2",
-    weight,
+    weight: w,
     detail
   }];
 }

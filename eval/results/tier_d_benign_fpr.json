@@ -1,0 +1,38 @@
+[
+  {
+    "fixture": "cathaybk-legit-login.html",
+    "label": "Cathay United Bank login (TW)",
+    "url": "https://www.cathaybk.com.tw/personal/login",
+    "rules_score": 0,
+    "short_circuited": false,
+    "llm_score": 95,
+    "llm_verdict": "suspicious",
+    "cascade_final_score": 95,
+    "llm_alone_false_positive": true,
+    "cascade_false_positive": true
+  },
+  {
+    "fixture": "google-oauth-consent.html",
+    "label": "Google OAuth consent screen",
+    "url": "https://accounts.google.com/o/oauth2/v2/auth/consent?client_id=EXAMPLE",
+    "rules_score": 0,
+    "short_circuited": true,
+    "llm_score": 85,
+    "llm_verdict": "suspicious",
+    "cascade_final_score": 0,
+    "llm_alone_false_positive": true,
+    "cascade_false_positive": false
+  },
+  {
+    "fixture": "github-2fa-login.html",
+    "label": "GitHub 2FA verification",
+    "url": "https://github.com/sessions/two-factor",
+    "rules_score": 0,
+    "short_circuited": true,
+    "llm_score": 85,
+    "llm_verdict": "suspicious",
+    "cascade_final_score": 0,
+    "llm_alone_false_positive": true,
+    "cascade_false_positive": false
+  }
+]

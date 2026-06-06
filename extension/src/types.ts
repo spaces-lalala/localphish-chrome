@@ -32,6 +32,10 @@ export interface PageFeatures {
   /** True when the form containing the password also holds ≥8 short text inputs
    *  (the seed-phrase grid pattern used by crypto-wallet drainers). */
   seedPhraseGridPattern: boolean;
+  /** True if any input matches Taiwan national ID (身分證字號 / 統一編號)
+   *  patterns. Used by the Taiwan PII combo detector in Stage 2. Optional
+   *  for backwards compatibility with older PageFeatures producers. */
+  hasTwNationalIdField?: boolean;
 
   // Form actions — raw URLs (string), SW resolves eTLD+1 with tldts.
   formActions: string[];
@@ -48,6 +52,21 @@ export interface PageFeatures {
    *  for image protection — but combined with credential-harvest signals it
    *  helps separate "real phishing kit" from "legit-but-paranoid site". */
   hasAntiDebug: boolean;
+
+  // ---- Cloaking / verify-wall hints (Stage 2) ----------------------------
+  /** Cloudflare Turnstile widget present in the static DOM. */
+  hasTurnstileWidget: boolean;
+  /** hCaptcha widget present in the static DOM. */
+  hasHCaptchaWidget: boolean;
+  /** Total body.innerText length (unclamped). Cheap to compute alongside
+   *  the 2 KB sample. Used by cloaking detector to spot "challenge widget
+   *  + near-empty body" pattern. Optional for backwards compatibility with
+   *  older PageFeatures producers. */
+  bodyTextLength?: number;
+
+  // ---- Favicon (Stage 2 hot-link mismatch) -------------------------------
+  /** Resolved absolute URL of the page's favicon, or null if none declared. */
+  faviconUrl?: string | null;
 
   // For backwards compatibility with popup-initiated URL-only classifies.
   etld1: string;
@@ -93,6 +112,15 @@ export type RpcRequest =
   | { type: "getTabVerdict"; tabId: number }
   | { type: "getBackendStatus" }
   | { type: "rebuildBrandDb" }
+  | { type: "getUserAllowlist" }
+  | { type: "addUserAllowlist"; etld1: string }
+  | { type: "removeUserAllowlist"; etld1: string }
+  | { type: "reportMisjudgment"; url: string; verdict: Verdict; expectedVerdict: Verdict; riskScore: number; reasons: string[] }
+  | { type: "listMisjudgments" }
+  | { type: "removeMisjudgment"; ts: number; url: string }
+  | { type: "getProfile" }
+  | { type: "setProfile"; profile: "auto" | "pro" | "lite" }
+  | { type: "getWebllmProgress" }
   /** SW → content-script push: SPA route changed, re-extract DOM + classify. */
   | { type: "spaReClassify"; url: string };
 
@@ -101,6 +129,11 @@ export type RpcResponse =
   | { type: "classifyResult"; result: ClassifyResult }
   | { type: "tabVerdict"; result: ClassifyResult | null }
   | { type: "backendStatus"; backend: LLMBackend; ready: boolean; reason?: string }
+  | { type: "userAllowlist"; entries: string[] }
+  | { type: "ok" }
+  | { type: "misjudgmentList"; entries: Array<{ url: string; verdict: Verdict; expectedVerdict: Verdict; riskScore: number; reasons: string[]; ts: number }> }
+  | { type: "profile"; profile: "auto" | "pro" | "lite" }
+  | { type: "webllmProgress"; progress: number; text: string; backend: LLMBackend; ready: boolean }
   | { type: "error"; message: string };
 
 // ---- Offscreen RPC envelopes (SW <-> offscreen document) ----------------
@@ -109,7 +142,9 @@ export type RpcResponse =
 
 export type OffscreenRequest =
   | { target: "offscreen"; type: "probe" }
-  | { target: "offscreen"; type: "stage3Classify"; input: Stage3Input };
+  | { target: "offscreen"; type: "stage3Classify"; input: Stage3Input }
+  | { target: "offscreen"; type: "setProfile"; profile: "auto" | "pro" | "lite" }
+  | { target: "offscreen"; type: "getProgress" };
 
 export type OffscreenResponse =
   | { type: "offscreenProbe"; backend: LLMBackend; ready: boolean; reason?: string }
@@ -119,7 +154,9 @@ export type OffscreenResponse =
       backend: LLMBackend;
       latencyMs: number;
       error?: string;
-    };
+    }
+  | { type: "offscreenSetProfile"; backend: LLMBackend; ready: boolean; reason?: string }
+  | { type: "offscreenProgress"; progress: number; text: string; backend: LLMBackend; ready: boolean };
 
 // Empty-feature helper for popup synthesis / URL-only classify entry points.
 export function emptyFeatures(url: string, title = ""): PageFeatures {
@@ -137,6 +174,11 @@ export function emptyFeatures(url: string, title = ""): PageFeatures {
     hiddenIframeCount: 0,
     tinyElementCount: 0,
     hasAntiDebug: false,
+    hasTurnstileWidget: false,
+    hasHCaptchaWidget: false,
+    bodyTextLength: 0,
+    faviconUrl: null,
+    hasTwNationalIdField: false,
     etld1: ""
   };
 }

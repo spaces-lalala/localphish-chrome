@@ -1,0 +1,35 @@
+{
+  "n": 117,
+  "n_benign": 69,
+  "threshold": 50,
+  "before": {
+    "precision": 0.5,
+    "recall": 0.75,
+    "f1": 0.6,
+    "fpr": 0.522,
+    "tp": 36,
+    "fp": 36,
+    "fn": 12,
+    "tn": 33
+  },
+  "after": {
+    "precision": 0.522,
+    "recall": 0.75,
+    "f1": 0.615,
+    "fpr": 0.478,
+    "tp": 36,
+    "fp": 33,
+    "fn": 12,
+    "tn": 36
+  },
+  "short_circuited_count": 6,
+  "short_circuited_urls": [
+    "https://www.post.gov.tw/post/internet/Postal/index.jsp",
+    "https://www.nhi.gov.tw/Content_List.aspx?n=4915F4E97DB4DA70&topn=23C660CAACAA159D",
+    "https://www.fetc.net.tw/",
+    "https://www.cathaybk.com.tw/cathaybk/personal/",
+    "https://www.esunbank.com/zh-tw/personal",
+    "https://www.ctbcbank.com/twrbo/zh_tw/index.html"
+  ],
+  "tw_allowlist_size": 88
+}

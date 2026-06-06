@@ -1,0 +1,69 @@
+{
+  "_comment": "Canonical single source of truth for signal IDs + weights, shared by the TS extension and the Python eval port. Adding a new signal: define it here once, then both `extension/src/signals/*.ts` and `eval/src/localphish_eval/rules.py / dom_features.py` must read its weight via the loader (never inline). Mirror-drift between the two languages was the structural risk called out in Week 16 §10 條 23; this file resolves it.",
+  "_version": 1,
+  "_caps": {
+    "dom.hidden_iframes_cap":  20,
+    "dom.tiny_interactive_cap": 16
+  },
+  "signals": {
+    "url.ip_as_host":                    { "stage": "stage1", "weight": 30, "description": "hostname is a raw IP literal" },
+    "url.userinfo_at":                   { "stage": "stage1", "weight": 25, "description": "URL contains a user@host clause" },
+    "url.nonstandard_port":              { "stage": "stage1", "weight": 8,  "description": "non-standard port (not 80/443)" },
+    "url.long":                          { "stage": "stage1", "weight": 6,  "description": "URL length > 100 chars" },
+    "url.many_hyphens":                  { "stage": "stage1", "weight": 4,  "description": "hostname contains >= 4 hyphens" },
+    "url.many_subdomains":               { "stage": "stage1", "weight": 7,  "description": "subdomain label count >= 4" },
+    "url.high_entropy_path":             { "stage": "stage1", "weight": 10, "description": "path entropy above noise threshold" },
+    "url.double_encoded":                { "stage": "stage1", "weight": 12, "description": "URL contains %25XX (double encoding)" },
+
+    "url.punycode_label":                { "stage": "stage1", "weight": 8,  "description": "hostname contains xn-- (IDN encoded)" },
+    "url.punycode_brand_lookalike":      { "stage": "stage1", "weight": 35, "description": "decoded punycode resembles a known brand" },
+    "url.mixed_script_label":            { "stage": "stage1", "weight": 20, "description": "hostname mixes Latin with Cyrillic/Greek" },
+
+    "url.typosquat_brand":               { "stage": "stage1", "weight": 25, "description": "Levenshtein <= 2 from a known brand" },
+    "url.subdomain_brand_abuse":         { "stage": "stage1", "weight": 35, "description": "known brand string embedded in subdomain" },
+    "url.path_brand_abuse":              { "stage": "stage1", "weight": 5,  "description": "brand string in URL path" },
+
+    "url.gov_tw_substring_abuse":        { "stage": "stage1", "weight": 40, "description": "hostname contains gov.tw but eTLD+1 is not .gov.tw" },
+    "url.gov_tw_pseudo_tld":             { "stage": "stage1", "weight": 35, "description": "eTLD+1 uses gov.tw as a fake prefix" },
+    "url.gov_tw_hyphen_variant":         { "stage": "stage1", "weight": 30, "description": "domain label is gov-tw / govtw / tw-gov / twgov" },
+
+    "url.reverse_proxy_fqdn":            { "stage": "stage1", "weight": 45, "description": "hostname embeds an entire brand FQDN as a subdomain (Evilginx pattern)" },
+    "url.reverse_proxy_hyphen_fqdn":     { "stage": "stage1", "weight": 40, "description": "hyphen-flattened brand FQDN embedded in host" },
+
+    "url.phishlet_endpoint":             { "stage": "stage1", "weight": 30, "description": "OAuth/OIDC well-known path on a non-IDP host" },
+
+    "url.zero_width_in_host":            { "stage": "stage1", "weight": 35, "description": "hostname contains zero-width chars (U+200B/C/D / U+2060)" },
+    "url.zero_width_in_url":             { "stage": "stage1", "weight": 21, "description": "URL path/query contains zero-width chars" },
+    "url.bidi_override_in_host":         { "stage": "stage1", "weight": 40, "description": "hostname contains Unicode bidi-override (U+202A-E)" },
+    "url.bidi_override_in_url":          { "stage": "stage1", "weight": 28, "description": "URL contains Unicode bidi-override" },
+    "url.tag_char_in_url":               { "stage": "stage1", "weight": 35, "description": "URL contains Unicode tag char (U+E0000-E007F)" },
+
+    "url.bloomfilter_blacklist_hit":     { "stage": "stage1", "weight": 95, "description": "URL hits the on-device 165/TWCERT bloom filter — Taiwan official phish-URL feed" },
+
+    "dom.password_no_tls":               { "stage": "stage2", "weight": 25, "description": "password field served over plain http://" },
+    "dom.password_cross_etld1_post":     { "stage": "stage2", "weight": 35, "description": "password posts to a different eTLD+1" },
+    "dom.otp_cross_etld1_post":          { "stage": "stage2", "weight": 25, "description": "OTP posts to a different eTLD+1" },
+    "dom.card_cross_etld1_post":         { "stage": "stage2", "weight": 30, "description": "credit-card posts to a different eTLD+1" },
+    "dom.card_and_password":             { "stage": "stage2", "weight": 12, "description": "card + password collected together" },
+    "dom.seed_phrase_grid":              { "stage": "stage2", "weight": 45, "description": "12/24-word seed phrase grid (wallet drainer)" },
+    "dom.tw_pii_combo":                  { "stage": "stage2", "weight": 35, "description": "page collects 身分證字號 + 卡號 + OTP on a non-allowlisted host" },
+    "dom.tw_national_id_cross_etld1_post": { "stage": "stage2", "weight": 30, "description": "身分證字號 field posts to a different eTLD+1" },
+    "dom.hidden_iframes":                { "stage": "stage2", "weight": 6,  "description": "per-iframe weight for inline hidden iframes (capped)" },
+    "dom.tiny_interactive":              { "stage": "stage2", "weight": 4,  "description": "per-element weight for tiny/off-screen interactives (capped)" },
+    "dom.many_foreign_scripts":          { "stage": "stage2", "weight": 8,  "description": "page loads scripts from >5 distinct foreign eTLD+1s" },
+    "dom.anti_debug":                    { "stage": "stage2", "weight": 5,  "description": "right-click / F12 / DevTools blocked (soft signal)" },
+
+    "dom.cross_strait_terms":            { "stage": "stage2", "weight": 25, "description": "TW-claiming page sprinkles mainland Chinese terms" },
+    "dom.cross_strait_terms_strong":     { "stage": "stage2", "weight": 35, "description": ">= 3 distinct mainland terms on a TW-claiming page" },
+
+    "dom.cloaking_verify_wall":          { "stage": "stage2", "weight": 18, "description": "Cloudflare Turnstile / hCaptcha + thin body" },
+    "dom.cloaking_verify_wall_strong":   { "stage": "stage2", "weight": 30, "description": "verify wall + body near-empty + zero forms (cloaked)" },
+
+    "dom.favicon_brand_cdn_mismatch":      { "stage": "stage2", "weight": 35, "description": "favicon URL points at a known brand CDN but page eTLD+1 doesn't match that brand" },
+    "dom.favicon_brand_canonical_mismatch": { "stage": "stage2", "weight": 35, "description": "favicon URL is a canonical brand eTLD+1 but page eTLD+1 is unrelated" },
+
+    "dom.zero_width_in_text":            { "stage": "stage2", "weight": 12, "description": "visible text contains zero-width chars" },
+    "dom.bidi_override_in_text":         { "stage": "stage2", "weight": 25, "description": "visible text contains bidi-override chars" },
+    "dom.tag_char_in_text":              { "stage": "stage2", "weight": 25, "description": "visible text contains Unicode tag chars" }
+  }
+}

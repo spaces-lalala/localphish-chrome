@@ -1,24 +1,30 @@
 # ============================================================
-# Course-specific artifacts — NOT part of the shippable service.
-# Kept locally for the term project; never committed.
+# Course handout materials & personal drafts — NOT public.
+# (The final_report.md IS committed for public reference.)
 # ============================================================
+
+# 課程指定的講義 / 作業要求文件 — 屬於 TAICA 課程資產，不該散播
 Project_handout.md
 week12.pdf
 week12_gemini.md
 week12*.md
+
+# Weekly 個人 progress reports — 草稿性質、不對外
 docs/week14_individual.md
 docs/week15_individual.md
-docs/final_report.md
+
+# Submission scratch / 個人草稿
 docs/submit/
 docs/*_submit/
 docs/*.docx
-docs/*.pdf
-
-# Personal grading / submission scratch
 SUBMIT/
 submit/
 *.draft.md
 notes_private/
+
+# PDF 是 markdown 的 build artifact —  PDF 不入版控、原始 markdown 入版控
+# （final_report.md 是公開報告本體，必須入版控）
+docs/*.pdf
 
 # ============================================================
 # Node / TypeScript / Vite
@@ -53,8 +59,14 @@ eval/results/*.parquet
 eval/datasets/raw/
 eval/datasets/cache/
 eval/datasets/phreshphish_*.jsonl
+# Regenerable from data.gov.tw 176455 via fetch_tw_scam_domains.py
+eval/datasets/tw_scam_domains.jsonl
 eval/playwright-report/
 eval/.playwright/
+
+# Note: small summary JSONs (eval/results/tier_*_summary.json) stay
+# COMMITTED as evidence of what the harness produced. CSV per-row results
+# are regeneratable from the runners + bulky, so gitignored above.
 
 # Temporary PDF / report scratch dumps
 docs/*_pdf_dump.txt

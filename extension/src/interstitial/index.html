@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⚠ LocalPhish — 已攔截高風險網址</title>
+    <link rel="stylesheet" href="./interstitial.css" />
+  </head>
+  <body>
+    <main class="frame" role="alert" aria-live="assertive">
+      <div class="warn-icon" aria-hidden="true">⚠</div>
+      <h1>LocalPhish 已攔截這個網址</h1>
+      <p class="lead">
+        你剛才嘗試開啟的網址在 Stage 1 URL 規則層就達到
+        <strong>DANGEROUS 等級</strong>（分數 ≥ 85），LocalPhish 在頁面載入
+        <em>之前</em>就把這個分頁導向這個警告頁，所以該網站沒機會在你的瀏覽器
+        裡執行任何程式碼、也沒讀到 cookie。
+      </p>
+
+      <section class="evidence">
+        <h2>被攔下來的網址</h2>
+        <code id="blocked-url" class="blocked-url">—</code>
+
+        <h2>觸發的規則層訊號</h2>
+        <ul id="signal-list" class="signal-list">
+          <li class="muted">—</li>
+        </ul>
+
+        <p class="muted score-meta">
+          內部分數 <code id="score">—</code> ／ 100 — 啟發式 weight 加總，
+          非校準機率，僅作工程除錯參考。
+        </p>
+      </section>
+
+      <section class="actions">
+        <a id="back-btn" class="btn primary" href="#" role="button">返回上一頁</a>
+        <a id="verify-165" class="btn secondary" target="_blank" rel="noopener"
+           href="https://165.npa.gov.tw/">用 165 反詐騙網查證</a>
+        <a id="proceed-anyway" class="btn link" href="#" role="button">
+          我了解風險，仍要前往這個網址
+        </a>
+      </section>
+
+      <section class="why">
+        <h2>為什麼會擋下來？</h2>
+        <p>
+          LocalPhish Stage 1 規則層比對了以下幾類證據：
+        </p>
+        <ul>
+          <li>網址結構：典型 typosquat、reverse-proxy 主機名、隱藏字元等</li>
+          <li>網域：是否在 165 反詐騙專線公布的「遭停止解析涉詐網站」清單</li>
+          <li>TLD 風險：高風險頂級網域（<code>.tk / .top / .zip</code> 等）</li>
+          <li>偽冒台灣機關：用 <code>gov.tw</code> 變體網域偽裝</li>
+        </ul>
+        <p class="muted">
+          這個攔截在頁面 DOM 載入<em>之前</em>就完成、不需要 LLM 介入。
+          資料完全本機處理 — 你的網址、頁面內容絕不外送。
+        </p>
+        <p class="muted">
+          如果你確信這是誤判（例如自己的銀行 / 政府網站），可以從
+          <a href="../options/index.html" target="_blank">LocalPhish Options</a>
+          把這個域名加入個人 allowlist。
+        </p>
+      </section>
+
+      <footer class="footer muted">
+        LocalPhish — On-Device Phishing Sentinel · 隱私不變式：單一 URL / DOM
+        / 文字絕不離開瀏覽器
+      </footer>
+    </main>
+
+    <script type="module" src="./interstitial.ts"></script>
+  </body>
+</html>

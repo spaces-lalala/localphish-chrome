@@ -46,7 +46,7 @@
     { "name": "AT&T",       "domain": "att.com",        "aliases": ["att"] },
     { "name": "Verizon",    "domain": "verizon.com",    "aliases": ["verizon"] },
 
-    { "name": "中華郵政",       "domain": "post.gov.tw",       "aliases": ["chunghwapost", "twpost", "中華郵政", "郵政", "郵局"] },
+    { "name": "中華郵政",       "domain": "post.gov.tw",       "aliases": ["chunghwapost", "twpost", "postoffice", "中華郵政", "郵政", "郵局", "郵局存款", "郵局帳號"] },
     { "name": "衛福部健保署",    "domain": "nhi.gov.tw",        "aliases": ["nhi", "健保署", "全民健保", "健保卡", "衛福部"] },
     { "name": "財政部國稅局",    "domain": "ntbsa.gov.tw",      "aliases": ["ntbsa", "國稅局", "財政部", "電子稅務", "退稅"] },
     { "name": "財政部",        "domain": "mof.gov.tw",        "aliases": ["mof", "財政部"] },
@@ -108,7 +108,6 @@
     { "name": "彰化銀行",      "domain": "bankchb.com",       "aliases": ["bankchb", "彰銀", "彰化銀行"] },
     { "name": "臺灣銀行",      "domain": "bot.com.tw",        "aliases": ["bot", "台銀", "臺銀", "台灣銀行", "臺灣銀行"] },
     { "name": "土地銀行",      "domain": "landbank.com.tw",   "aliases": ["landbank", "土銀", "土地銀行"] },
-    { "name": "中華郵政(郵局)","domain":"post.gov.tw",        "aliases":["postoffice","郵局存款","郵局帳號"] },
     { "name": "Pixnet",     "domain": "pixnet.net",        "aliases": ["pixnet", "痞客邦"] },
     { "name": "Dcard",      "domain": "dcard.tw",          "aliases": ["dcard"] }
   ]

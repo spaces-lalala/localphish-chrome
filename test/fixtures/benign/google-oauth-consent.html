@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+  BENIGN fixture — mimics Google OAuth consent screen.
+  Legitimate OAuth flows look exactly like phishing on a structural level:
+  - asks for credential-like permissions
+  - cross-eTLD+1 redirect URL in the page
+  - urgency-like "an app wants access to your account"
+
+  LocalPhish's IDP allowlist should keep this safe in production, but here
+  we deliberately bypass that to test the LLM's judgment on a hard benign.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign in - Google Accounts</title>
+    <style>
+      body { font-family: "Google Sans", Roboto, Arial, sans-serif; background: white;
+             margin: 0; }
+      .frame { max-width: 440px; margin: 80px auto; padding: 48px 40px;
+               border: 1px solid #dadce0; border-radius: 8px; }
+      .logo { font-size: 24px; font-weight: 500; color: #4285f4; }
+      h1 { font-size: 20px; font-weight: 400; }
+      .scope { background: #f8f9fa; padding: 12px; border-radius: 4px;
+               margin: 12px 0; font-size: 13px; }
+      .scope strong { display: block; color: #202124; margin-bottom: 4px; }
+      .button-row { display: flex; justify-content: flex-end; gap: 8px;
+                    margin-top: 24px; }
+      button { padding: 8px 24px; border: 0; border-radius: 4px; cursor: pointer;
+               font-size: 14px; }
+      .primary { background: #1a73e8; color: white; }
+      .cancel { background: transparent; color: #1a73e8; }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <div class="logo">Google</div>
+      <h1>EXAMPLE_APP wants to access your Google Account</h1>
+      <p>This will allow EXAMPLE_APP to:</p>
+
+      <div class="scope">
+        <strong>📧 See your primary Google Account email address</strong>
+        Allows the app to know which account you're signed in with.
+      </div>
+
+      <div class="scope">
+        <strong>👤 See your personal info, including any personal info you've made publicly available</strong>
+        Includes name and profile picture.
+      </div>
+
+      <p>By clicking Allow, you allow this app to use your information in accordance
+      with their respective terms of service and privacy policies. You can review
+      or remove access in your Google Account at any time.</p>
+
+      <form action="https://accounts.google.com/o/oauth2/v2/auth/consent" method="post">
+        <input type="hidden" name="client_id" value="EXAMPLE_APP_CLIENT_ID" />
+        <input type="hidden" name="redirect_uri" value="https://example-app.com/callback" />
+        <input type="hidden" name="scope" value="email profile" />
+        <div class="button-row">
+          <button type="button" class="cancel">Cancel</button>
+          <button type="submit" class="primary">Allow</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

@@ -21,7 +21,12 @@ const verdictLabel: Record<Verdict, string> = {
 // so the popup eventually shows the real result (including Stage 3 LLM
 // signals) instead of dropping straight to URL-only fallback.
 const POLL_INTERVAL_MS = 400;
-const MAX_POLL_MS = 28_000; // tracks the Nano timeout (25 s) + small headroom
+// Long enough to cover the slowest backend timeout: WebLLM on Intel iGPU
+// can take 60-120 s for a single Qwen 1.5B inference (crbug 369219127 —
+// Chromium picks the wrong adapter on Windows hybrid graphics). Nano is
+// always faster (25 s budget). Keep some headroom so the loading state
+// doesn't flip to URL-only fallback right before the verdict arrives.
+const MAX_POLL_MS = 200_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -167,6 +172,7 @@ function App() {
       <button class="deep" disabled>
         Deep visual check (Stage 4b) — coming soon
       </button>
+      <ReportMisjudgment result={result} />
       <div class="backend">
         Stages: <strong>{result.stagesRan.join(" → ")}</strong> ·{" "}
         backend <strong>{result.backend}</strong> · {result.latencyMs.toFixed(1)} ms
@@ -181,6 +187,128 @@ function App() {
           Open URL Tester →
         </a>
       </div>
+    </div>
+  );
+}
+
+// ---- Report-misjudgment widget ------------------------------------------
+// Lets the user record "this verdict is wrong" locally. Captures the verdict
+// they expected (the inverse of what we returned, broadly) and stores it in
+// chrome.storage.local for the Options page to review. Never uploaded.
+
+// Three-state widget — prevents accidental taps, allows undo after commit.
+//   idle    : "Misjudged?" prompt + "Actually X" button (one click)
+//   confirm : "Confirm?"   prompt + "Yes" (red) + "Cancel"  buttons
+//   done    : "Recorded ✓ Undo"  — undo removes the entry by (ts, url)
+type ReportState =
+  | { kind: "idle" }
+  | { kind: "confirm"; expected: Verdict }
+  | { kind: "done"; expected: Verdict; ts: number; url: string };
+
+function ReportMisjudgment({ result }: { result: ClassifyResult }) {
+  const [state, setState] = useState<ReportState>({ kind: "idle" });
+  const [busy, setBusy] = useState(false);
+
+  async function commit(expected: Verdict) {
+    if (busy) return;
+    setBusy(true);
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tab?.url ?? "(unknown)";
+    const ts = Date.now();
+    const req: RpcRequest = {
+      type: "reportMisjudgment",
+      url,
+      verdict: result.verdict,
+      expectedVerdict: expected,
+      riskScore: result.riskScore,
+      reasons: result.reasons.slice(0, 6)
+    };
+    await chrome.runtime.sendMessage(req);
+    setState({ kind: "done", expected, ts, url });
+    setBusy(false);
+  }
+
+  async function undo(ts: number, url: string) {
+    if (busy) return;
+    setBusy(true);
+    await chrome.runtime.sendMessage({ type: "removeMisjudgment", ts, url } as RpcRequest);
+    setState({ kind: "idle" });
+    setBusy(false);
+  }
+
+  // Which way to offer the flip: if we said dangerous/suspicious -> "actually
+  // safe"; if we said safe/caution -> "actually dangerous". One direction at
+  // a time; the user only needs the inverse of the current verdict.
+  const ourSide: "negative" | "positive" =
+    result.verdict === "dangerous" || result.verdict === "suspicious" ? "negative" : "positive";
+  const flipTo: Verdict = ourSide === "negative" ? "safe" : "dangerous";
+
+  const wrapStyle = { display: "flex", gap: 6, margin: "8px 0 0", fontSize: 11.5, alignItems: "center" } as const;
+  // Buttons live in a popup that respects the user's OS color scheme. Setting
+  // an explicit white background without a matching dark text color makes the
+  // label invisible in dark mode — be explicit about both.
+  const btn = (extra: object = {}) => ({
+    padding: "4px 8px",
+    fontSize: 11.5,
+    border: "1px solid #d1d5db",
+    background: "#fafafa",
+    color: "#1f2937",
+    cursor: "pointer",
+    borderRadius: 4,
+    ...extra
+  });
+
+  if (state.kind === "done") {
+    return (
+      <div style={wrapStyle}>
+        <span style={{ flex: 1, opacity: 0.7 }}>
+          Recorded as “expected {state.expected.toUpperCase()}”.
+        </span>
+        <button
+          disabled={busy}
+          onClick={() => void undo(state.ts, state.url)}
+          style={btn({ textDecoration: "underline", border: 0, background: "transparent", color: "#0078d4" })}
+        >
+          Undo
+        </button>
+      </div>
+    );
+  }
+
+  if (state.kind === "confirm") {
+    return (
+      <div style={wrapStyle}>
+        <span style={{ flex: 1, opacity: 0.7 }}>
+          Confirm “expected {state.expected.toUpperCase()}”?
+        </span>
+        <button
+          disabled={busy}
+          onClick={() => void commit(state.expected)}
+          style={btn({ background: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b", fontWeight: 600 })}
+        >
+          Yes
+        </button>
+        <button
+          disabled={busy}
+          onClick={() => setState({ kind: "idle" })}
+          style={btn()}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={wrapStyle}>
+      <span style={{ opacity: 0.7 }}>Misjudged?</span>
+      <button
+        disabled={busy}
+        onClick={() => setState({ kind: "confirm", expected: flipTo })}
+        style={btn({ flex: 1 })}
+      >
+        Actually {flipTo}
+      </button>
     </div>
   );
 }

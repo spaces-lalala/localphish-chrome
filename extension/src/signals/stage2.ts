@@ -6,21 +6,13 @@ import { getDomain } from "tldts";
 
 import type { PageFeatures, Signal, StageId, Verdict } from "@/types";
 import { crossStraitLanguageSignals } from "./cross-strait-language";
+import { cloakingSignals } from "./cloaking";
+import { faviconMismatchSignals } from "./favicon-mismatch";
+import { unicodeTrickeryTextSignals } from "./unicode-trickery";
+import { getBrandIndex } from "./stage1";
 
 import idpAllowlistRaw from "@/data/known-idp-allowlist.json";
-
-const W_PASSWORD_INSECURE = 25;        // password field served over http://
-const W_PASSWORD_CROSS_ETLD1 = 35;     // password posts to a different eTLD+1
-const W_OTP_CROSS_ETLD1 = 25;          // OTP posts to a different eTLD+1
-const W_CARD_CROSS_ETLD1 = 30;         // credit card posts to a different eTLD+1
-const W_CARD_AND_PASSWORD = 12;        // bonus when both are collected together
-const W_SEED_PHRASE_PATTERN = 45;      // 12-word seed-phrase grid — wallet drainer
-const W_HIDDEN_IFRAME = 6;             // per iframe, capped
-const W_HIDDEN_IFRAME_CAP = 20;
-const W_TINY_ELEMENT = 4;              // per element, capped
-const W_TINY_ELEMENT_CAP = 16;
-const W_MANY_FOREIGN_SCRIPTS = 8;      // >5 distinct foreign eTLD+1s in scripts
-const W_ANTI_DEBUG = 5;                // anti-debug / right-click block — soft signal
+import { weight as W, cap as CAP } from "./weights";
 
 // Pre-compiled known-IDP set used to suppress cross-eTLD+1 form-action signals
 // when the action actually points at a legitimate OAuth / SSO target.
@@ -48,7 +40,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
     signals.push({
       id: "dom.password_no_tls",
       stage: "stage2",
-      weight: W_PASSWORD_INSECURE,
+      weight: W("dom.password_no_tls"),
       detail: "page collects a password over plain http:// — TLS missing"
     });
   }
@@ -96,7 +88,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       signals.push({
         id: "dom.password_cross_etld1_post",
         stage: "stage2",
-        weight: W_PASSWORD_CROSS_ETLD1,
+        weight: W("dom.password_cross_etld1_post"),
         detail: `password field on ${pageEtld1} but form posts to ${offendingActionEtld1}`
       });
     }
@@ -104,7 +96,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       signals.push({
         id: "dom.otp_cross_etld1_post",
         stage: "stage2",
-        weight: W_OTP_CROSS_ETLD1,
+        weight: W("dom.otp_cross_etld1_post"),
         detail: `OTP field on ${pageEtld1} but form posts to ${offendingActionEtld1}`
       });
     }
@@ -112,7 +104,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       signals.push({
         id: "dom.card_cross_etld1_post",
         stage: "stage2",
-        weight: W_CARD_CROSS_ETLD1,
+        weight: W("dom.card_cross_etld1_post"),
         detail: `credit-card field on ${pageEtld1} but form posts to ${offendingActionEtld1}`
       });
     }
@@ -123,9 +115,39 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
     signals.push({
       id: "dom.card_and_password",
       stage: "stage2",
-      weight: W_CARD_AND_PASSWORD,
+      weight: W("dom.card_and_password"),
       detail: "page collects password and credit card in the same flow"
     });
+  }
+
+  // ---- Taiwan PII combo (身分證字號 + 卡號 + OTP) on non-trusted page ------
+  // Legit Taiwan sites that need to collect 身分證字號 (national ID) live on
+  // .gov.tw / .edu.tw or in the Taiwan first-class allowlist — those are
+  // already short-circuited by Stage 1. If we see this combo here, the page
+  // is by construction not on the trusted list, so the combo is near-certain
+  // identity-theft / SIM-swap setup.
+  if (features.hasTwNationalIdField) {
+    const triadComplete =
+      features.hasTwNationalIdField &&
+      features.hasCreditCardField &&
+      features.hasOtpField;
+    if (triadComplete) {
+      signals.push({
+        id: "dom.tw_pii_combo",
+        stage: "stage2",
+        weight: W("dom.tw_pii_combo"),
+        detail: "page collects 身分證字號 + 卡號 + OTP on a host outside the Taiwan trusted list — identity-theft / SIM-swap pattern"
+      });
+    }
+    // Even just national ID posted off-site is a strong signal.
+    if (hasCrossEtld1FormAction) {
+      signals.push({
+        id: "dom.tw_national_id_cross_etld1_post",
+        stage: "stage2",
+        weight: W("dom.tw_national_id_cross_etld1_post"),
+        detail: `身分證字號 field on ${pageEtld1} but form posts to ${offendingActionEtld1}`
+      });
+    }
   }
 
   // ---- Seed-phrase grid (wallet drainer) ---------------------------------
@@ -133,14 +155,14 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
     signals.push({
       id: "dom.seed_phrase_grid",
       stage: "stage2",
-      weight: W_SEED_PHRASE_PATTERN,
+      weight: W("dom.seed_phrase_grid"),
       detail: "form asks for a 12-/24-word seed phrase — wallet drainer pattern"
     });
   }
 
   // ---- Hidden iframes ----------------------------------------------------
   if (features.hiddenIframeCount > 0) {
-    const w = Math.min(W_HIDDEN_IFRAME_CAP, W_HIDDEN_IFRAME * features.hiddenIframeCount);
+    const w = Math.min(CAP("dom.hidden_iframes_cap"), W("dom.hidden_iframes") * features.hiddenIframeCount);
     signals.push({
       id: "dom.hidden_iframes",
       stage: "stage2",
@@ -151,7 +173,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
 
   // ---- Tiny / off-screen interactive overlays ----------------------------
   if (features.tinyElementCount > 0) {
-    const w = Math.min(W_TINY_ELEMENT_CAP, W_TINY_ELEMENT * features.tinyElementCount);
+    const w = Math.min(CAP("dom.tiny_interactive_cap"), W("dom.tiny_interactive") * features.tinyElementCount);
     signals.push({
       id: "dom.tiny_interactive",
       stage: "stage2",
@@ -178,7 +200,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
       signals.push({
         id: "dom.many_foreign_scripts",
         stage: "stage2",
-        weight: W_MANY_FOREIGN_SCRIPTS,
+        weight: W("dom.many_foreign_scripts"),
         detail: `loads scripts from ${foreignEtld1s.size} distinct foreign eTLD+1s`
       });
     }
@@ -193,7 +215,7 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
     signals.push({
       id: "dom.anti_debug",
       stage: "stage2",
-      weight: W_ANTI_DEBUG,
+      weight: W("dom.anti_debug"),
       detail: "page disables right-click / F12 / DevTools — common phishing-kit anti-inspection"
     });
   }
@@ -204,6 +226,26 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
   // localized for Taiwan but produced upstream. Gated on TW-institution claim
   // or .tw hostname to avoid false-positives on legitimate mainland sites.
   signals.push(...crossStraitLanguageSignals(features, pageEtld1));
+
+  // ---- Cloaking / Turnstile / hCaptcha verify-wall -----------------------
+  // 2024+ phishing kits gate the credential-harvest payload behind a
+  // challenge widget; the static DOM seen by scrapers is then mostly empty.
+  // Flag this structural pattern so Stage 3 LLM can apply heavier scepticism
+  // and so Tier A misses caused by cloaking can be attributed.
+  signals.push(...cloakingSignals(features));
+
+  // ---- Favicon CDN hot-link mismatch -------------------------------------
+  // Phishing kits routinely hot-link the real brand's favicon to keep the
+  // tab icon convincing. If the favicon's eTLD+1 belongs to a known brand
+  // (or its CDN) but the page eTLD+1 doesn't, that's strong impersonation.
+  signals.push(...faviconMismatchSignals(features, pageEtld1, getBrandIndex()));
+
+  // ---- Unicode trickery in title + visible text --------------------------
+  // Zero-width / bidi-override / tag-character attacks embedded in copy.
+  // Companion to the URL-level checks in Stage 1; text-level weights are
+  // lower because Arabic/Hebrew + Latin content legitimately uses some
+  // direction marks (we exclude LRM/RLM but keep override/isolate).
+  signals.push(...unicodeTrickeryTextSignals(features.title, features.visibleTextSample));
 
   const rawScore = signals.reduce((s, sig) => s + sig.weight, 0);
   return {
@@ -216,9 +258,11 @@ export function runStage2(features: PageFeatures, pageEtld1: string | null): Sta
 
 // ---- Verdict helper (used by cascade) -------------------------------------
 
+import { DANGER_FLOOR, SAFE_CEILING, SUSPICIOUS_FLOOR } from "./thresholds";
+
 export function verdictFromScore(score: number): { verdict: Verdict; shortCircuit: boolean } {
-  if (score >= 85) return { verdict: "dangerous", shortCircuit: true };
-  if (score < 15) return { verdict: "safe", shortCircuit: false };
-  if (score >= 50) return { verdict: "suspicious", shortCircuit: false };
+  if (score >= DANGER_FLOOR) return { verdict: "dangerous", shortCircuit: true };
+  if (score < SAFE_CEILING) return { verdict: "safe", shortCircuit: false };
+  if (score >= SUSPICIOUS_FLOOR) return { verdict: "suspicious", shortCircuit: false };
   return { verdict: "caution", shortCircuit: false };
 }

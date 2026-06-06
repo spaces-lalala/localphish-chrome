@@ -1,0 +1,97 @@
+{
+  "n_phish": 48,
+  "n_benign": 69,
+  "n_total": 117,
+  "per_signal": [
+    {
+      "signal": "url.tld_medium_risk",
+      "tp_on_phish": 18,
+      "fp_on_benign": 0,
+      "total_fires": 18,
+      "precision": 1.0,
+      "hit_rate_phish": 0.375,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.high_entropy_path",
+      "tp_on_phish": 10,
+      "fp_on_benign": 0,
+      "total_fires": 10,
+      "precision": 1.0,
+      "hit_rate_phish": 0.208,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.tld_high_risk",
+      "tp_on_phish": 9,
+      "fp_on_benign": 0,
+      "total_fires": 9,
+      "precision": 1.0,
+      "hit_rate_phish": 0.188,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.long",
+      "tp_on_phish": 5,
+      "fp_on_benign": 0,
+      "total_fires": 5,
+      "precision": 1.0,
+      "hit_rate_phish": 0.104,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.ip_as_host",
+      "tp_on_phish": 1,
+      "fp_on_benign": 0,
+      "total_fires": 1,
+      "precision": 1.0,
+      "hit_rate_phish": 0.021,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.nonstandard_port",
+      "tp_on_phish": 1,
+      "fp_on_benign": 0,
+      "total_fires": 1,
+      "precision": 1.0,
+      "hit_rate_phish": 0.021,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.reverse_proxy_hyphen_fqdn",
+      "tp_on_phish": 1,
+      "fp_on_benign": 0,
+      "total_fires": 1,
+      "precision": 1.0,
+      "hit_rate_phish": 0.021,
+      "hit_rate_benign": 0.0
+    },
+    {
+      "signal": "url.allowlist_hit",
+      "tp_on_phish": 4,
+      "fp_on_benign": 62,
+      "total_fires": 66,
+      "precision": 0.061,
+      "hit_rate_phish": 0.083,
+      "hit_rate_benign": 0.899
+    },
+    {
+      "signal": "url.tw_allowlist_hit",
+      "tp_on_phish": 0,
+      "fp_on_benign": 4,
+      "total_fires": 4,
+      "precision": 0.0,
+      "hit_rate_phish": 0.0,
+      "hit_rate_benign": 0.058
+    },
+    {
+      "signal": "url.tw_institutional_tld",
+      "tp_on_phish": 0,
+      "fp_on_benign": 3,
+      "total_fires": 3,
+      "precision": 0.0,
+      "hit_rate_phish": 0.0,
+      "hit_rate_benign": 0.043
+    }
+  ]
+}

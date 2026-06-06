@@ -16,7 +16,12 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        offscreen: resolve(__dirname, "src/offscreen/offscreen.html")
+        offscreen: resolve(__dirname, "src/offscreen/offscreen.html"),
+        // Pre-nav interstitial page — extension navigates the tab to this
+        // URL when Stage 1 alone scores >= DANGER_FLOOR. Not declared on
+        // manifest.action / options_page so we must register it as a build
+        // input explicitly for crxjs to emit + bundle the assets.
+        interstitial: resolve(__dirname, "src/interstitial/index.html")
       }
     }
   },

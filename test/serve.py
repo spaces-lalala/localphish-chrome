@@ -31,8 +31,12 @@ def main() -> int:
     print(f"Serving {args.root.resolve()} at http://localhost:{args.port}/")
     print("Press Ctrl-C to stop.\n")
     print("Try these URLs in Chrome with LocalPhish loaded:")
-    for p in sorted(args.root.glob("*.html")):
-        print(f"  http://localhost:{args.port}/{p.name}")
+    # Walk a couple of levels deep so the Week 16 v3 TW fixtures (in tw/) +
+    # adversarial fixtures (in adversarial/) + benign fixtures (in benign/)
+    # show up alongside the top-level ones.
+    for p in sorted(args.root.rglob("*.html")):
+        rel = p.relative_to(args.root).as_posix()
+        print(f"  http://localhost:{args.port}/{rel}")
     print()
 
     with socketserver.TCPServer(("127.0.0.1", args.port), handler) as httpd:

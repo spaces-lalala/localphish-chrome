@@ -21,6 +21,9 @@ interface NanoSessionModern {
     opts?: { outputLanguage?: string; language?: string }
   ): Promise<string>;
   destroy?(): void;
+  /** Chrome 138+: branch a fresh session that shares the parent's pre-tokenised
+   *  system prompt but has empty user-turn history. Cheap (~50–100 ms). */
+  clone?(): Promise<NanoSessionModern>;
 }
 
 type LanguageHint = { type: "text"; languages: string[] };
@@ -126,19 +129,51 @@ export class NanoBackend implements LLMBackendImpl {
       this.session = await this.createSession();
     }
 
-    // 25 s budget — empirically: short English fixture ~3.7 s warm, longer
-    // 繁中-heavy fixtures (ETC overdue, 1.5 KB visible text) push past 15 s
-    // on a cold Nano session. 25 s covers cold-start + heavy input while
-    // still bounding the popup loading state to something the user will
-    // tolerate.
+    // CRITICAL — Chrome Prompt API sessions are multi-turn by design: every
+    // session.prompt() call appends to the conversation history, so reusing
+    // one session across pages would feed Page A's content + verdict back
+    // into Page B's classification (real bug observed in the wild: NTU
+    // coursework page was classified as 國稅局 phishing right after the
+    // user had just visited the ntbsa-tax-refund fixture).
+    // Fix: clone() before each call. clone() shares the parent's pre-
+    // tokenised system prompt + few-shot example so it's cheap (~50–100 ms),
+    // and the clone has empty user-turn history. Destroy the clone in
+    // `finally` so its KV cache doesn't leak.
+    const turnSession = await this.makeTurnSession();
     const timeoutMs = opts.timeoutMs ?? 25_000;
-    // Some Chrome M138/M139 builds still demand a language hint at prompt()
-    // time even when the session declared it; pass it again as belt-and-
-    // braces. Extras are ignored by versions that don't care.
-    return await withTimeout(
-      this.session.prompt(prompt, { outputLanguage: "en", language: "en" }),
-      timeoutMs
-    );
+    try {
+      // Some Chrome M138/M139 builds still demand a language hint at prompt()
+      // time even when the session declared it; pass it again as belt-and-
+      // braces. Extras are ignored by versions that don't care.
+      return await withTimeout(
+        turnSession.prompt(prompt, { outputLanguage: "en", language: "en" }),
+        timeoutMs
+      );
+    } finally {
+      if (turnSession !== this.session) {
+        try {
+          turnSession.destroy?.();
+        } catch {
+          // best-effort cleanup
+        }
+      }
+    }
+  }
+
+  /** Return a per-classification session with fresh history. Prefers clone()
+   *  for speed; falls back to the shared session on older Chrome that
+   *  doesn't expose clone() — accepts the bleed-over risk in that case
+   *  rather than paying 1–3 s for a fresh create(). */
+  private async makeTurnSession(): Promise<NanoSessionModern> {
+    if (!this.session) throw new Error("session not initialized");
+    if (typeof this.session.clone === "function") {
+      try {
+        return await this.session.clone();
+      } catch {
+        // fall through
+      }
+    }
+    return this.session;
   }
 
   async destroy(): Promise<void> {

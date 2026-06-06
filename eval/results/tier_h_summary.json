@@ -1,0 +1,4 @@
+{
+  "status": "harness-shipped, awaiting GSB_API_KEY",
+  "_note": "Tier H is the external baseline harness called out in §10 條 12 (round 3 review). Implementation complete; needs the maintainer to provision a free GSB Lookup API key (Google Cloud Console, 10k queries/day free tier) and re-run. Result will populate this file."
+}

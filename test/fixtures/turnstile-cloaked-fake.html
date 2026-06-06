@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+  ============================================================================
+  FOR LOCAL TESTING ONLY — DO NOT DEPLOY.
+  Mock-up of a 2024+ phishing kit's cloaking gate page. Real payload is
+  hidden behind a Cloudflare Turnstile challenge — what scrapers (and
+  PhreshPhish's archival crawler) capture is this near-empty shell.
+
+  Exercise the LocalPhish detectors:
+    - dom.cloaking_verify_wall_strong  — Turnstile widget present + thin body
+                                         + zero forms (only a passive widget)
+  Stage 3 LLM will see the cloaking signal in ruleSignals[] and should
+  apply heavier scepticism even though the visible text is minimal.
+  ============================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>One moment, please...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Real script tag a Turnstile widget needs — kit author has to load it. -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #fff; color: #111; }
+      .wrap { max-width: 360px; margin: 200px auto 0; text-align: center; }
+      .wrap h1 { font-size: 18px; font-weight: 500; margin-bottom: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>One moment while we verify your browser…</h1>
+      <!-- The standard Turnstile widget. data-sitekey is a real public test key. -->
+      <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
+    </div>
+  </body>
+</html>

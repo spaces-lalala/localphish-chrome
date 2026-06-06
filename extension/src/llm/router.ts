@@ -1,21 +1,28 @@
 // LLM router — picks a concrete backend and runs Stage 3 classification.
 //
-// Plan §3.6 三層降級鏈:
+// Plan §3.6 fallback chain:
 //   Auto: WebGPU? → WebLLM. Else Nano? → Nano. Else rules-only.
 //   Pro:  force WebLLM. On failure → Nano. On failure → rules-only.
 //   Lite: force Nano. On failure → rules-only. (don't auto-download 1 GB WebLLM)
 //
-// This first cut only ships Nano; WebLLM lands in a follow-up commit. The
-// interface is already shaped to absorb it without further refactor.
+// Per-profile, per-backend prompt selection:
+//   Nano  → phishing_v2_tw_nano (English-only output, attestation hell)
+//   WebLLM→ phishing_v3_qwen   (繁中 native output, max_tokens controllable)
 
 import type { LLMBackend, Stage3Input, Stage3Output } from "@/types";
 
 import type { LLMBackendImpl } from "./backend";
 import { NanoBackend } from "./nano";
+import { WebLLMBackend } from "./webllm";
 import {
   buildTwNanoUserPrompt,
   buildTwNanoRetryPrompt
 } from "@/prompts/phishing_v2_tw_nano";
+import {
+  buildQwenSystemPrompt,
+  buildQwenUserPrompt,
+  buildQwenRetryPrompt
+} from "@/prompts/phishing_v3_qwen";
 import { parseStage3Output } from "@/prompts/schema";
 
 export type Profile = "auto" | "pro" | "lite";
@@ -24,17 +31,78 @@ export interface RouterState {
   backend: LLMBackend;
   ready: boolean;
   reason?: string;
+  /** WebLLM only — present during model download / compile. */
+  progress?: { progress: number; text: string };
 }
 
 export class LLMRouter {
   private nano: NanoBackend | null = null;
+  private webllm: WebLLMBackend | null = null;
   private state: RouterState = { backend: "rules-only", ready: false };
 
   constructor(private profile: Profile = "auto") {}
 
+  setProfile(p: Profile): void {
+    this.profile = p;
+  }
+
+  /** Tear down all backends. Called when the offscreen document is told to
+   *  swap profiles — releases WebGPU buffers, terminates the WebLLM worker,
+   *  and clears any Nano session so the new router starts from a known state. */
+  async destroy(): Promise<void> {
+    const tasks: Promise<void>[] = [];
+    if (this.webllm) tasks.push(this.webllm.destroy().catch(() => undefined));
+    if (this.nano) tasks.push(this.nano.destroy().catch(() => undefined));
+    await Promise.all(tasks);
+    this.webllm = null;
+    this.nano = null;
+    this.state = { backend: "rules-only", ready: false };
+  }
+
+  /** Surfacing WebLLM's progress so the offscreen handler can echo it
+   *  back to popup polls during a 1.2 GB download. */
+  getDownloadProgress(): { progress: number; text: string } | null {
+    return this.webllm?.getProgress() ?? null;
+  }
+
   async init(): Promise<RouterState> {
-    // Lite or auto: try Nano. (Pro/WebLLM lands later.)
-    if (this.profile === "lite" || this.profile === "auto") {
+    // Reset between profile swaps. Destroy any backend not used by the new profile.
+    if (this.profile === "lite" && this.webllm) {
+      void this.webllm.destroy();
+      this.webllm = null;
+    }
+
+    // ---- Profile: pro ---------------------------------------------------
+    if (this.profile === "pro") {
+      const w = new WebLLMBackend(buildQwenSystemPrompt());
+      const probe = await w.init();
+      if (probe.available) {
+        this.webllm = w;
+        this.state = { backend: "webllm", ready: true };
+        return this.state;
+      }
+      // Fall through to Nano as best-effort second-best.
+      const n = new NanoBackend();
+      const np = await n.init();
+      if (np.available) {
+        this.nano = n;
+        this.state = {
+          backend: "nano",
+          ready: true,
+          reason: `WebLLM unavailable (${probe.reason}); fell back to Nano`
+        };
+        return this.state;
+      }
+      this.state = {
+        backend: "rules-only",
+        ready: false,
+        reason: `WebLLM unavailable (${probe.reason}); Nano also unavailable (${np.reason})`
+      };
+      return this.state;
+    }
+
+    // ---- Profile: lite --------------------------------------------------
+    if (this.profile === "lite") {
       const n = new NanoBackend();
       const probe = await n.init();
       if (probe.available) {
@@ -46,12 +114,21 @@ export class LLMRouter {
       return this.state;
     }
 
-    // profile === "pro": WebLLM not yet implemented in this commit.
-    this.state = {
-      backend: "rules-only",
-      ready: false,
-      reason: "WebLLM (Pro profile) not yet wired up; install Nano or wait for the next release."
-    };
+    // ---- Profile: auto --------------------------------------------------
+    // Auto picks WebLLM only if WebGPU is present AND the user previously
+    // committed to a Pro download. We probe Nano first because it's a
+    // no-cost capability check; only escalate to WebLLM if Nano is
+    // unavailable. This avoids surprising the user with a 1.2 GB download
+    // on a fresh install. The Options page's explicit "Pro" toggle is the
+    // sanctioned way to trigger WebLLM.
+    const n = new NanoBackend();
+    const probe = await n.init();
+    if (probe.available) {
+      this.nano = n;
+      this.state = { backend: "nano", ready: true };
+      return this.state;
+    }
+    this.state = { backend: "rules-only", ready: false, reason: probe.reason };
     return this.state;
   }
 
@@ -78,7 +155,12 @@ export class LLMRouter {
       };
     }
 
-    const userPrompt = buildTwNanoUserPrompt(input);
+    // Different backends, different prompts. Nano gets the constrained
+    // English-only prompt; WebLLM (Qwen) gets the prompt that allows native
+    // 繁中 output.
+    const buildUser = backend.id === "webllm" ? buildQwenUserPrompt : buildTwNanoUserPrompt;
+    const buildRetry = backend.id === "webllm" ? buildQwenRetryPrompt : buildTwNanoRetryPrompt;
+    const userPrompt = buildUser(input);
 
     let raw: string;
     try {
@@ -100,7 +182,7 @@ export class LLMRouter {
     // Retry once with a corrective system message in-band.
     let retryRaw = "";
     try {
-      retryRaw = await backend.run(buildTwNanoRetryPrompt(raw));
+      retryRaw = await backend.run(buildRetry(raw));
       parsed = parseStage3Output(retryRaw);
       if (parsed) {
         return { result: parsed, backend: backend.id, latencyMs: performance.now() - t0 };
@@ -133,6 +215,8 @@ export class LLMRouter {
   }
 
   private activeBackend(): LLMBackendImpl | null {
+    // Prefer WebLLM when ready (Pro profile and Auto-with-webllm-promoted).
+    if (this.webllm?.ready) return this.webllm;
     if (this.nano?.ready) return this.nano;
     return null;
   }

@@ -10,10 +10,32 @@ export default defineManifest({
 
   action: {
     default_title: "LocalPhish",
-    default_popup: "src/popup/index.html"
+    default_popup: "src/popup/index.html",
+    default_icon: {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+
+  icons: {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
   },
 
   options_page: "src/options/index.html",
+
+  // MV3 default CSP for extension pages is "script-src 'self'; object-src
+  // 'self';" — no WebAssembly. WebLLM needs WASM for the model runtime; the
+  // standard MV3 unlock is 'wasm-unsafe-eval'. This applies to the offscreen
+  // document where the LLM lives. We do NOT add 'unsafe-eval' (that's a
+  // store-rejection risk and we don't need it).
+  content_security_policy: {
+    extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
 
   background: {
     service_worker: "src/background/index.ts",
@@ -45,7 +67,14 @@ export default defineManifest({
     {
       resources: ["src/offscreen/offscreen.html"],
       matches: ["<all_urls>"]
+    },
+    {
+      // Pre-nav interstitial — tabs.update redirects the tab to this URL
+      // when Stage 1 alone scores DANGEROUS. Must be web_accessible because
+      // the navigation comes from the regular web (the address bar / link
+      // the user clicked).
+      resources: ["src/interstitial/index.html", "src/interstitial/*"],
+      matches: ["<all_urls>"]
     }
   ]
-  // icons intentionally omitted in scaffold; Chrome falls back to default.
 });
