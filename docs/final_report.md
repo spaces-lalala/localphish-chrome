@@ -6,6 +6,7 @@
 **組別**: 107
 **Date**: 2026-06-05
 **Course**: LLM Applications in Cybersecurity — Term Project Final
+**Source code**: <https://github.com/spaces-lalala/localphish-chrome>（MIT 授權；完整 v1+v2+v3 source、評估 harness、Tier A/B/C/D/E/F/G/H 結果、165 bloom blob 與本份報告均 publicly available）
 
 > 本份報告同時作為「個人 Week 16 progress」與「團隊整合報告」交付。
 > Week 14 / Week 15 已交：[`docs/week14_individual.md`](week14_individual.md) /
@@ -1488,6 +1489,10 @@ lifecycle 案例為「AI vs AI」對應新增一個工程實證；v3 新加 loca
 
 ## 12. 交付物清單
 
+完整 repo 在 GitHub publicly available：
+**<https://github.com/spaces-lalala/localphish-chrome>**（MIT 授權；含完整
+source + 評估 harness + Tier A-H 結果 + 165 bloom blob + 本份報告）。
+
 | 項目 | 位置 | 狀態 |
 |---|---|---|
 | 擴充功能源碼 | `extension/` | ✅ TypeScript + Vite + @crxjs MV3 |
@@ -1589,6 +1594,9 @@ adversarial fixture 上 `max()` 守住的展示、Pro/Lite Profile 切換、cath
 
 ## 14. 參考文獻
 
+**本專案 source code**：<https://github.com/spaces-lalala/localphish-chrome>
+
+**外部 API / 套件**：
 - Chrome Built-in AI Prompt API: <https://developer.chrome.com/docs/ai/prompt-api>
 - @mlc-ai/web-llm: <https://github.com/mlc-ai/web-llm>
 - PhreshPhish dataset: arXiv 2507.10854; HuggingFace `phreshphish/phreshphish`
