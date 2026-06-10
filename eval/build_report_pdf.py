@@ -22,6 +22,13 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 CSS = """
+/* Cascadia Mono 字格 = 0.6em；把 CJK fallback 放大到 120% 使全形字
+   剛好佔 2 格（2 × 0.6em = 1.2em），ASCII 架構圖的框線才能對齊。 */
+@font-face {
+  font-family: "CJK Mono Adjusted";
+  src: local("Microsoft JhengHei");
+  size-adjust: 120%;
+}
 @page { size: A4; margin: 18mm 16mm; }
 html { -webkit-print-color-adjust: exact; }
 body {
@@ -34,26 +41,35 @@ h2 { font-size: 14pt; border-bottom: 1px solid #999; padding-bottom: 3px;
      margin-top: 1.6em; }
 h3 { font-size: 12pt; margin-top: 1.3em; }
 h2, h3 { page-break-after: avoid; }
-code, pre {
+code {
   font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
   font-size: 8.8pt;
+  background: #f2f2f2; padding: 0 3px; border-radius: 3px;
+  overflow-wrap: anywhere;
 }
-code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
 pre {
+  /* box-drawing 字元取自 Cascadia（半形）、CJK 走 size-adjust 過的
+     JhengHei（恰為 2 格）；絕不可 wrap，wrap 會把框線折斷 */
+  font-family: "Cascadia Mono", Consolas, "CJK Mono Adjusted", monospace;
+  font-size: 8pt; line-height: 1.35;
   background: #f7f7f7; border: 1px solid #ddd; border-radius: 4px;
-  padding: 8px 10px; overflow-x: hidden;
-  white-space: pre-wrap; word-break: break-all;
+  padding: 8px 10px; overflow: hidden; white-space: pre;
 }
-pre code { background: none; padding: 0; }
+pre code {
+  font-family: inherit; font-size: inherit;
+  background: none; padding: 0; overflow-wrap: normal;
+}
 table {
   border-collapse: collapse; width: 100%; margin: 0.8em 0;
-  font-size: 9pt; page-break-inside: avoid;
+  font-size: 9pt;
 }
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
 th, td {
   border: 1px solid #bbb; padding: 4px 7px; text-align: left;
   word-break: break-word;
 }
-th { background: #efefef; }
+th { background: #efefef; word-break: keep-all; }
 blockquote {
   border-left: 4px solid #c9a227; background: #fdf8e8;
   margin: 0.8em 0; padding: 6px 12px; color: #444;
