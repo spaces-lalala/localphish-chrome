@@ -1,6 +1,6 @@
 # ============================================================
 # Course handout materials & personal drafts — NOT public.
-# (The final_report.md IS committed for public reference.)
+# (The final integrated report is submission-only — see docs/ rule below.)
 # ============================================================
 
 # 課程指定的講義 / 作業要求文件 — 屬於 TAICA 課程資產，不該散播
@@ -13,6 +13,10 @@ week12*.md
 docs/week14_individual.md
 docs/week15_individual.md
 
+# 期末整合報告 — 只交課程作業區，不入公開 repo
+docs/final_report.md
+docs/Group107_final_report.md
+
 # Submission scratch / 個人草稿
 docs/submit/
 docs/*_submit/
@@ -22,8 +26,8 @@ submit/
 *.draft.md
 notes_private/
 
-# PDF 是 markdown 的 build artifact —  PDF 不入版控、原始 markdown 入版控
-# （final_report.md 是公開報告本體，必須入版控）
+# PDF 是 markdown 的 build artifact —  PDF 不入版控
+# （報告本體交課程作業區、不入公開 repo，見上方 docs/*.md 規則）
 docs/*.pdf
 
 # ============================================================
